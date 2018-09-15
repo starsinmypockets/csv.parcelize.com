@@ -1,0 +1,31 @@
+{
+  "name": "dreamtiger",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "aws-sdk": "^2.315.0",
+    "bayes": "0.0.7",
+    "body-parser": "^1.18.3",
+    "csvtojson": "^2.0.8",
+    "express": "^4.16.3",
+    "formik": "^1.2.0",
+    "mongodb": "^3.1.4",
+    "mongoose": "^5.2.12",
+    "nodemailer": "^4.6.8",
+    "passport": "^0.4.0",
+    "passport-http-bearer": "^1.0.1",
+    "request": "^2.88.0",
+    "serverless-http": "^1.6.0"
+  },
+  "scripts": {
+    "test": "ENV=test mocha test",
+    "app": "ENV=dev node src/app.js"
+  },
+  "devDependencies": {
+    "eslint": "^5.6.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-recommended": "^3.0.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-mocha": "^5.2.0"
+  }
+}
