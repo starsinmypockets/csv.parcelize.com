@@ -12,22 +12,6 @@ class UploadForm extends Component {
     this.state = {token: token}
   }
 
-  async handleSubmit(e) {
-    e.preventDefault()
-    console.log("SUBMIT", this)
-    const values = this.props.values
-    
-    const res = await fetch('/classify', {
-      method: "POST", 
-      body: JSON.stringify(values),
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Authorization": "Bearer " + this.state.token,
-      },
-    })
-
-    const body = await res.json()
-  }
 
   getUploadForm() {
     const {
@@ -57,7 +41,7 @@ class UploadForm extends Component {
           {errors["url"] &&
           touched["url"] && <div className="input-feedback">{errors["url"]}</div>}
         </div>
-        <button typw="submit" onClick={this.handleSubmit.bind(this)}>SUBMIT</button>
+        <button type="submit" onClick={this.props.submitUploadForm.bind(this, this.props.values)}>SUBMIT</button>
       </form>
     )
   }

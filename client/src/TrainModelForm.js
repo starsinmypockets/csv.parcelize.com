@@ -157,26 +157,9 @@ class TrainModelForm extends Component {
   handleSubmit(e) {
     e.preventDefault()
     console.log("submit____________", this.props.values)
-    this.submitForm(this.props.values)
+    this.props.submitModelTrainForm(this.props.values)
   }
   
-  async submitForm(values) {
-    console.log("SUBMIT", this)
-    
-    const res = await fetch('/train', {
-      method: "POST", 
-      body: JSON.stringify(values),
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Authorization": "Bearer " + this.state.token,
-      },
-    })
-
-    const body = await res.json()
-    this.props.onTrainSuccess(body)
-    console.log('server res', body)
-
-  }
 
   render() {
     console.log(this.state)

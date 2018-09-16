@@ -33,7 +33,9 @@ app.use(passport.initialize({session: false}))
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*")
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+  res.header("Access-Control-Allow-Credentials", true)
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+  res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE")
   res.header("Cache-Control", "'max-age=0'")
   next()
 })
@@ -95,9 +97,8 @@ app.post('/train', passport.authenticate('bearer'), async (req, res) => {
 app.post('/verify-user', passport.authenticate('bearer'), async (req, res) => {
   // if we have a training model, we don't retrain
   // in order to retrain users need to give more info
-  console.log(req.user)
   try {
-    const user = await api.findUserByEmail(req.user)
+    const user = await api.findUserByToken(req.token)
     console.log("User", user)
     res.send({verified: true, appUses: 1, trainingModel: true})
   } catch (e) {
@@ -113,12 +114,13 @@ app.post('/create-user', async (req, res) => {
       from: 'admin@parcelize.com',
       to: user.email,
       subject: email.subject,
-      text: email.text
+      text: email.text,
+      user: user.toObject()
     }
 
     console.log(emailOpts)
 
-    api.sendAuthEmail(emailOpts)
+    await api.sendAuthEmail(emailOpts)
     res.json(user)
   } catch (e) {
     console.log("CREATE-USER", e)

@@ -30,7 +30,11 @@
     "app": "ENV=dev node app/app.js",
     "deploy": "npm run build && aws s3 sync build/ s3://parcelize.com"
   },
-  "proxy": "https://gbn1lsti45.execute-api.us-east-1.amazonaws.com/dev/",
+  "proxy": { "/api": {
+    "target": "https://beemsk0b9h.execute-api.us-east-1.amazonaws.com/dev/",
+    "changeOrigin": "true"
+    }
+  },
   "devDependencies": {
     "concurrently": "^4.0.1"
   }

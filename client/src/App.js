@@ -6,12 +6,30 @@ import LoginForm from './LoginForm.js'
 import TrainModelForm from './TrainModelForm.js'
 import UploadForm from './UploadForm.js'
 
-const apiUrl = "https://gbn1lsti45.execute-api.us-east-1.amazonaws.com/dev"
+const baseUrl = "https://beemsk0b9h.execute-api.us-east-1.amazonaws.com/dev"
+
+// utils
+function getUrlVars() {
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        vars[key] = value;
+    });
+    return vars;
+}
+
+function getUrlParam(parameter, defaultvalue){
+    var urlparameter = defaultvalue;
+    if(window.location.href.indexOf(parameter) > -1){
+        urlparameter = getUrlVars()[parameter];
+        }
+    return urlparameter;
+}
 
 class App extends Component {
   constructor(props, context) {
     super(props, context)
-    const token=window.location.pathname.slice(1)
+    const token=getUrlParam('token', false)
+    //window.location.pathname.slice(1)
     console.log("KEY", token)
     this.state = {
       token: token,
@@ -24,7 +42,7 @@ class App extends Component {
   }
   
   async callApi() {
-    const response = await fetch(apiUrl+'/pipelines')
+    const response = await fetch(baseUrl+'/pipelines')
     const body = await response.json()
     console.log("OO", body)
     if (response.status !== 200) throw Error(body.message)
@@ -33,7 +51,7 @@ class App extends Component {
 
   async loginAction(opts) {
     console.log("Login Action - app", opts)
-    const res = await fetch(apiUrl+'/create-user', {
+    const res = await fetch(baseUrl+'/create-user', {
       method: "POST", 
       body: JSON.stringify(opts),
       headers: {
@@ -51,9 +69,11 @@ class App extends Component {
   }
 
   async verifyToken() {
-    const res = await fetch(apiUrl+'/verify-user', {
+    const body = JSON.stringify({token: this.state.token})
+    console.log('body', body)
+    const res = await fetch(baseUrl+'/verify-user', {
       method: "POST", 
-      body: JSON.stringify(this.state),
+      body: body,
       headers: {
         "Content-Type": "application/json; charset=utf-8",
         "Authorization": "Bearer " + this.state.token,
@@ -69,6 +89,38 @@ class App extends Component {
       console.log(body)
       this.setState(body)
     }
+  }
+  
+  async submitModelTrainForm(values) {
+    console.log("SUBMIT", this)
+    
+    const res = await fetch(baseUrl+'/train', {
+      method: "POST", 
+      body: JSON.stringify(values),
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": "Bearer " + this.state.token,
+      },
+    })
+
+    const body = await res.json()
+    this.props.onTrainSuccess(body)
+    console.log('server res', body)
+  }
+  
+  async submitUploadForm(e, values) {
+    e.preventDefault()
+    
+    const res = await fetch('/classify', {
+      method: "POST", 
+      body: JSON.stringify(values),
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": "Bearer " + this.state.token,
+      },
+    })
+
+    const body = await res.json()
   }
 
   // if this gets any bigger, plug cra router in
@@ -95,6 +147,7 @@ class App extends Component {
         return <TrainModelForm
           appUses={this.state.appUses}
           trainingModel={this.state.trainingModel}
+          submitModelTrainForm={this.submitModelTrainForm}
           onTrainSuccess={(body) => {
             this.setState({
               route: "has-model",
@@ -106,6 +159,7 @@ class App extends Component {
       case"has-model":
         return <UploadForm 
           buckets={this.state.buckets}
+          submitUploadForm={this.submitUploadForm}
         />
       default:
         return (
@@ -139,7 +193,7 @@ class App extends Component {
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"/>
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">... Dreamtigers ...</h1>
+          <h1 className="App-title">Parcelize -- CSV</h1>
           <p className="lead">Dreamtigers uses machine learning to create intelligent pipelines for your data, and tells you things that you didn\'t know about your operations."</p>
         </header>
         <Grid className="main">
