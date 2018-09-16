@@ -17,7 +17,7 @@ function getUrlVars() {
     return vars;
 }
 
-function getUrlParam(parameter, defaultvalue){
+function getUrlParam(parameter, defaultvalue) {
     var urlparameter = defaultvalue;
     if(window.location.href.indexOf(parameter) > -1){
         urlparameter = getUrlVars()[parameter];
@@ -25,12 +25,14 @@ function getUrlParam(parameter, defaultvalue){
     return urlparameter;
 }
 
+function getToken() {
+  return getUrlParam('token', false)
+}
+
 class App extends Component {
   constructor(props, context) {
-    super(props, context)
-    const token=getUrlParam('token', false)
-    //window.location.pathname.slice(1)
-    console.log("KEY", token)
+    super(props)
+    const token = getToken()
     this.state = {
       token: token,
       route: "home"
@@ -69,14 +71,14 @@ class App extends Component {
   }
 
   async verifyToken() {
-    const body = JSON.stringify({token: this.state.token})
+    const body = JSON.stringify({token: getToken()})
     console.log('body', body)
     const res = await fetch(baseUrl+'/verify-user', {
       method: "POST", 
       body: body,
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Authorization": "Bearer " + this.state.token,
+        "Authorization": "Bearer " + getToken(),
       },
     })
 
@@ -99,13 +101,16 @@ class App extends Component {
       body: JSON.stringify(values),
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Authorization": "Bearer " + this.state.token,
+        "Authorization": "Bearer " + getToken(),
       },
     })
 
     const body = await res.json()
-    this.props.onTrainSuccess(body)
     console.log('server res', body)
+    this.setState({
+      route: "has-model",
+      buckets: body
+    })
   }
   
   async submitUploadForm(e, values) {
@@ -116,7 +121,7 @@ class App extends Component {
       body: JSON.stringify(values),
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Authorization": "Bearer " + this.state.token,
+        "Authorization": "Bearer " + getToken(),
       },
     })
 
@@ -147,19 +152,13 @@ class App extends Component {
         return <TrainModelForm
           appUses={this.state.appUses}
           trainingModel={this.state.trainingModel}
-          submitModelTrainForm={this.submitModelTrainForm}
-          onTrainSuccess={(body) => {
-            this.setState({
-              route: "has-model",
-              buckets: body
-            })}
-          }
+          submitModelTrainForm={this.submitModelTrainForm.bind(this)}
         />
         break
       case"has-model":
         return <UploadForm 
           buckets={this.state.buckets}
-          submitUploadForm={this.submitUploadForm}
+          submitUploadForm={this.submitUploadForm.bind(this)}
         />
       default:
         return (
