@@ -49,25 +49,29 @@ const api = module.exports = {
   sendAuthEmail: async (opts) => {
     try {
       const aws = require('aws-sdk')
+      aws.config.update({region: 'us-east-1'})
       const ses = new aws.SES()
 
       const mailOptions = {
         Source: opts.from,
-        Destination: { toAddress: opts.to },
+        Destination:  { ToAddresses: [opts.to] },
         Message: {
           Subject: {
             Charset: 'UTF-8',
             Data: opts.subject,
           },
           Body: {
-            Charset: 'UTF-8',
-            Data: opts.text
+            Text: {
+              Charset: 'UTF-8',
+              Data: opts.text
+            }
           }
         }
       }
+      console.log("ses opts", mailOptions)
 
       const data = await ses.sendEmail(mailOptions).promise()
-      console.log(data)
+      console.log("ses res", data)
       return data
     } catch (e) {
       console.log(e)

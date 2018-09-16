@@ -5,7 +5,6 @@ const passport = require('passport')
 const Strategy = require('passport-http-bearer').Strategy
 const api = require('./api.js')
 const app = express()
-const config = require('./config.js')[process.env.ENV]
 
 console.log(process.env)
 //const port = config.appPort
@@ -111,8 +110,7 @@ app.post('/create-user', async (req, res) => {
     const user = await api.createUser(req.body)
     const email = require('./email.js').authenticate
     const emailOpts = {
-      senderEmail: config.senderEmail,
-      from: config.senderEmail.auth.user,
+      from: 'admin@parcelize.com',
       to: user.email,
       subject: email.subject,
       text: email.text

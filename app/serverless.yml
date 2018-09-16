@@ -7,7 +7,12 @@ service: parcelize-csv
 provider:
   name: aws
   runtime: nodejs8.10
-
+  iamRoleStatements:
+    - Effect: Allow
+      Resource: "*"
+      Action:
+        - ses:SendEmail
+        - ses:SendRawEmail
 
 functions:
   listen: 
@@ -17,7 +22,12 @@ functions:
       - http: 'ANY {proxy+}'
     environment:
       ENV: aws
-
+    iamRoleStatements:
+      - Effect: Allow
+        Resource: "*"
+        Action:
+          - ses:SendEmail
+          - ses:SendRawEmail
 package:
   include:
     - src/**
