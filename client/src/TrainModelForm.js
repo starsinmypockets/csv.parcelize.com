@@ -91,7 +91,7 @@ class TrainModelForm extends Component {
     } = this.props;
     
     return [...Array(i).keys()].map(i => {
-      const name = `datafield[${i}]`
+      const name = `dataFields[${i}]`
 
       return (
         <div className="data-field-container">
@@ -208,7 +208,7 @@ const TrainingPage = withFormik({
        return acc
     }, {})
     const dataFieldsShape = [...Array(props.dataFieldCount).keys()].reduce((acc, i) => {
-      acc[`datafield[${i}]`] = Yup.string().required('Add a valid csv row header title or remove this field (-)')
+      acc[`dataFields[${i}]`] = Yup.string().required('Add a valid csv row header title or remove this field (-)')
       return acc
     }, {})
     return Yup.object().shape(Object.assign(bucketShape, dataFieldsShape))

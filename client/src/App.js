@@ -94,7 +94,7 @@ class App extends Component {
   }
   
   async submitModelTrainForm(values) {
-    console.log("SUBMIT", this)
+    console.log("SUBMIT", this, values)
     
     const res = await fetch(baseUrl+'/train', {
       method: "POST", 
