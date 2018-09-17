@@ -16,6 +16,7 @@
     "react": "^16.4.2",
     "react-bootstrap": "^0.32.3",
     "react-dom": "^16.4.2",
+    "react-loader": "^2.4.5",
     "react-scripts": "1.1.5",
     "react-tagcloud": "^1.3.0",
     "yup": "^0.26.3"
@@ -30,9 +31,10 @@
     "app": "ENV=dev node app/app.js",
     "deploy": "npm run build && aws s3 sync build/ s3://parcelize.com"
   },
-  "proxy": { "/api": {
-    "target": "https://beemsk0b9h.execute-api.us-east-1.amazonaws.com/dev/",
-    "changeOrigin": "true"
+  "proxy": {
+    "/api": {
+      "target": "https://beemsk0b9h.execute-api.us-east-1.amazonaws.com/dev/",
+      "changeOrigin": "true"
     }
   },
   "devDependencies": {

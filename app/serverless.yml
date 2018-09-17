@@ -18,9 +18,30 @@ functions:
   listen: 
     handler: src/app.handler
     events:
-      - http: ANY /
-      - http: 'ANY {proxy+}'
-      - cors: true
+      - http:
+          path: /
+          method: ANY
+          cors:
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors:
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
     environment:
       ENV: aws
     iamRoleStatements:

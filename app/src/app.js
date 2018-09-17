@@ -40,13 +40,6 @@ app.use(function(req, res, next) {
   next()
 })
 
-// @@TODO implement logger
-function log() {
-  console.log("LOGGER")
-  console.log(arguments)
-  // @@TODO print to error log
-}
-
 /**
  * ROUTES
  **/
@@ -68,6 +61,7 @@ app.post('/train', passport.authenticate('bearer'), async (req, res) => {
     const fieldNames = ["bucketName", "bucketUrl"]
     const _bx = api.formatReqFields(req.body, fieldNames)
     const dataFields = req.body.dataFields
+    
 
     // tweak keys:
     const bx = _bx.map(row => {
@@ -77,19 +71,38 @@ app.post('/train', passport.authenticate('bearer'), async (req, res) => {
       }
     })
 
+    const trainingData = await api.getCSVData(bx)
+    
     const opts = {
-      trainingData: bx,
+      trainingData: trainingData,
       dataFields: dataFields
     }
-
-    const model = await api.trainBucketizer(opts)
-    const bucketInfo = await api.getBucketInfo(model)
-    // store Bayes model as JS object
-    await api.saveBayesModel({model: model, user: req.user})
-    res.send(bucketInfo)
+    
+    // @@TODO validate training data 
+    // if valid send response
+    // don't wait for training to finish
+    res.send(opts)
+    const bayes = await api.trainBucketizer(opts)
+    api.saveBayesModel({bayesModel: bayes, user: req.user})
   } catch (e) {
-    log("CLASSIFY REQ ERROR", e)
-    res.send({error: "error parsing fields"})
+    console.log("CLASSIFY REQ ERROR", e)
+    res.send(e)
+  }
+})
+
+app.get('/training-data', passport.authenticate('bearer'), async (req, res) => {
+  try {
+    const model = await api.getBayes(req.user).bayes
+    console.log("bucket model", model)
+    if (model) {
+      const bucketInfo = await api.getBucketInfo(model)
+      return res.send({bucketInfo: bucketInfo})
+    } else {
+      res.send({})
+    }
+  } catch (e) {
+    console.log('TRAINING-DATA', e)
+    res.send({bucketInfo: false})
   }
 })
 
@@ -134,7 +147,7 @@ app.post('/classify', passport.authenticate('bearer'), async (req, res) => {
     await api.classifyData({email: req.user, url: url})
     res.send({success: 'working on it'})
   } catch (e) {
-    log('CLASSIFY', e)
+    console.log('CLASSIFY', e)
     res.send({error: 'error more to come'})
   }
 })
@@ -144,5 +157,4 @@ module.exports.handler = serverless(app)
 /* app.listen(port, () => { */
 /*   console.log('We are live on ' + port) */
 /* }) */
-
 

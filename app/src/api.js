@@ -99,7 +99,7 @@ const api = module.exports = {
   
   /**
    * @param opts = {
-   *   trainingData: [{bucketName: String, url: Valid URL},     ...],
+   *   trainingData: // raw training data
    *   dataFields: ["field1", "field2",...] // extant fields from trainingData and inputData both
    * }
    * @return training model object for bayes classifier
@@ -107,12 +107,11 @@ const api = module.exports = {
    **/
   trainBucketizer: async (opts) => {
     try {
-      const trainingData = await api.getCSVData(opts.trainingData)
       const b8r = new Bucketizer
       
       b8r.init({
         dataFields: opts.dataFields,
-        trainingData: trainingData,
+        trainingData: opts.trainingData,
         stopWords: stopwords
       })
 
@@ -123,12 +122,12 @@ const api = module.exports = {
     }
   },
 
-  getBucketInfo: async (model) => {
+  getBucketInfo: async (bayes) => {
     try {
       const b8r = new Bucketizer
       
       b8r.init({
-        classifierModel: model
+        classifierModel: bayes
       })
 
       return b8r.getBayesModelInfo()
@@ -141,11 +140,11 @@ const api = module.exports = {
   classifyData: async (opts) => {
     const data = await api.getCSVData([{bucketName: "rows", url: opts.url}])
     const b8r = new Bucketizer
-    const model = await api.getBayes(opts.email)
-    model.model.options = model.model.options || {}
+    const bayes= await api.getBayes(opts.email)
+    bayes.model.options = bayes.model.options || {}
 
     await b8r.init({
-      classifierModel: model.model,
+      classifierModel: bayes.model,
       data: data[0].rows
     })
 
@@ -176,11 +175,11 @@ const api = module.exports = {
 
   saveBayesModel: async  (opts) => {
     try {
-      const model = new Bayes(opts)
-      const saved = await model.save()
+      const bayes = new Bayes(opts)
+      const saved = await bayes.save()
       return (saved)
     } catch (e) {
-      log("SAVE MODEL")
+      log("SAVE MODEL", e)
     }
   },
 }

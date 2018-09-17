@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import {Button, Nav, Navbar, NavItem, NavDropdown, MenuItem, Grid, Row, Col, ListGroup, ListGroupItem, FormGroup, ControlLabel, FormControl, HelpBlock} from 'react-bootstrap'
+import Loader from 'react-loader'
 import logo from './logo.svg'
 import './App.css'
 import LoginForm from './LoginForm.js'
@@ -35,11 +36,20 @@ class App extends Component {
     const token = getToken()
     this.state = {
       token: token,
-      route: "home"
+      route: "home",
+      loaded: true
     }
     
     if (token) {
       this.verifyToken()
+    }
+  }
+
+  componentDidUpdate() {
+    if (this.state.polling && this.state.polling > 0) {
+      setTimeout(() => {
+        this.getBucketInfo()
+      }, 1200)
     }
   }
   
@@ -94,8 +104,9 @@ class App extends Component {
   }
   
   async submitModelTrainForm(values) {
-    console.log("SUBMIT", this, values)
+    console.log("SUBMIT TRAINING FORM", this, values)
     
+    this.setState({loaded: false})
     const res = await fetch(baseUrl+'/train', {
       method: "POST", 
       body: JSON.stringify(values),
@@ -107,10 +118,52 @@ class App extends Component {
 
     const body = await res.json()
     console.log('server res', body)
-    this.setState({
-      route: "has-model",
-      buckets: body
+    
+    if (body.trainingData) {
+      // wait for model to be ready
+      this.setState({
+        route: 'model-submit',
+        loaded: true,
+        polling: 10
+      })
+    } else {
+      this.setState({
+        route: 'has-error',
+        error: body,
+      })
+    }
+  }
+
+  async getBucketInfo() {
+    const res = await fetch(baseUrl+'/training-data', {
+      method: "GET", 
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": "Bearer " + getToken(),
+      },
     })
+
+    const body = await res.json()
+    console.log('getBucketInfo res', body)
+
+    if (body.bucketInfo) {
+      this.setState({
+        loaded: true,
+        route: 'has-model',
+        buckets: body.bucketInfo,
+        polling: 0
+      })
+    } else {
+      // try ten times and give up
+      // see componentDidMount for other side of this loop
+      const retries = (this.state.polling - 1)
+      console.log("retries", retries)
+      this.setState({
+        loaded: true,
+        polling: retries, 
+        error: body,
+      })
+    }
   }
   
   async submitUploadForm(e, values) {
@@ -133,20 +186,16 @@ class App extends Component {
     // validate token here
     switch (this.state.route) {
       case "bad-submit":
-        return (
-          <div className="bad-response">
+        return <div className="bad-response">
             <h2>Sorry!</h2>
             <p className="lead">Something went wrong with your request. Please try again later</p>
           </div>
-        )
         break
       case "submit-sent":
-        return (
-          <div className="submit-sent">
+        return <div className="submit-sent">
             <h2>Thank you!</h2>
             <p className="lead">Please check your email for your login link.</p>
           </div>
-        )
         break
       case "has-key":
         return <TrainModelForm
@@ -155,11 +204,22 @@ class App extends Component {
           submitModelTrainForm={this.submitModelTrainForm.bind(this)}
         />
         break
-      case"has-model":
+      case "model-submit":
+        return <div id="model-submit">
+          <h2>Just a moment while we create a machine learning model</h2>
+        </div>
+        break
+      case "has-model":
         return <UploadForm 
           buckets={this.state.buckets}
           submitUploadForm={this.submitUploadForm.bind(this)}
         />
+        break
+      case "has-error":
+        return <div id="app-error">
+          <p>{this.state.error}</p>
+        </div>
+        break
       default:
         return (
           <LoginForm
@@ -167,7 +227,6 @@ class App extends Component {
             loginAction={this.loginAction.bind(this)}
           /> 
         )
-
     }
   }
 
@@ -195,10 +254,12 @@ class App extends Component {
           <h1 className="App-title">Parcelize -- CSV</h1>
           <p className="lead">Dreamtigers uses machine learning to create intelligent pipelines for your data, and tells you things that you didn\'t know about your operations."</p>
         </header>
-        <Grid className="main">
-          {header}
-          {body}
-        </Grid>
+        <Loader loaded={this.state.loaded}>
+          <Grid className="main">
+            {header}
+            {body}
+          </Grid>
+        </Loader>
       </div>
     )
   }

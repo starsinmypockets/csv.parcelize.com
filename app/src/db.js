@@ -19,7 +19,7 @@ const bayesModel = new mongoose.Schema({
   user: { type: String, required: true },
   created: { type: Date, default: Date.now },
   updated: { type: Date, default: Date.now },
-  model: { type: Object, required: true },
+  bayesModel: { type: Object, required: true }, // JSON
 })
 
 module.exports = {

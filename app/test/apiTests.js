@@ -2,10 +2,17 @@ const assert = require('assert')
 const api = require('../src/api.js')
 const {User, Bayes} = require('../src/db.js')
 const mongoose = require('mongoose')
+const Bucketizer = require('../src/Bucketizer.js')
+const {trainingData, testData, dataFields} = require('./testData.js')
 
-before(() => {
-  console.log('BEFORE')
-  return User.remove({})
+const testUser = {
+  name: "testuser",
+  email: "email@email.com"
+}
+
+before(async () => {
+  await User.remove({})
+  await Bayes.remove({})
 })
 
 describe('API tests', () => {
@@ -30,17 +37,11 @@ describe('API tests', () => {
   })
 
   describe("API create user SUCCEED", async () => {
-    const userOpts = {
-      name: "testuser",
-      email: "email@email.com"
-    }
-    
     let user
     
     it('Should save user with valid input', async () => {
-      user = await api.createUser(userOpts)
+      user = await api.createUser(testUser)
       ourUser = Object.assign({}, user._doc)
-      console.log("OG save")
 
       assert(user.name === "testuser")
       assert(user.bearerToken.length > 10)
@@ -48,16 +49,13 @@ describe('API tests', () => {
     })
   
     it('Verify should succeeed with user token', async () => {
-      console.log("<3",ourUser)
       const u2 = await api.verifyUserAuth(ourUser)
       assert(u2.name === ourUser.name)
     })
 
     it('Should fail on dupe email', async () => {
-      console.log("create dupe")
       
-      const user = await api.createUser(userOpts)
-      console.log('d', user)
+      const user = await api.createUser(testUser)
       assert(!user)
     })
   })
@@ -83,6 +81,53 @@ describe('API tests', () => {
     
     const res = api.formatReqFields(body, fieldNames)
     console.log("FFFF", res)
+  })
+
+  describe("Test bucketizer and bayes model generation", () => {
+    it('Should instantiate bucketizer via api', async () => {
+      const bayesModel = await api.trainBucketizer({
+        dataFields: dataFields,
+        trainingData: trainingData
+      })
+        
+      const confObj = JSON.parse(bayesModel)
+
+      assert('bayes model has categories', confObj.categories)
+      assert('bayes model has options', confObj.options)
+      
+      describe('Save and retrieve generated model', async () => {
+        it('Should save and retrieve bayes model', async () => {
+          const saved = await api.saveBayesModel({
+            bayesModel: bayesModel,
+            user: testUser.email
+          })
+
+          const returnBayesModel = await api.getBayes(testUser.email)
+          const returnedBayesModel = JSON.parse(returnBayesModel.bayesModel)
+
+          assert('saved bayes model has categories',returnedBayesModel.categories)
+          assert('saved bayes model has options', returnedBayesModel.options)
+       
+         describe('getBucketInfo with bayes model as JSON string', async () => {
+            it('Should return sane bucket info', async () => {
+              const info = await api.getBucketInfo(bayesModel)
+              const great = info.pos.filter(row => {
+                return row[0] === 'great'
+              })
+              console.log("BUCKET INFO", info, great)
+              assert('has expected categories', Array.isArray(info.pos))
+              assert('has expected categories', Array.isArray(info.neg))
+              assert('keyword great exists', great[0] === 'great')
+              assert('keyword great count exists', great[1] === 3)
+            })
+         })
+            /* it ('Should be good bucket info', () => { */
+              
+            /* }) */
+          /* }) */
+        })
+      })
+      })
   })
 
   describe("Test email", () => {
