@@ -15,6 +15,9 @@ provider:
         - ses:SendRawEmail
 
 functions:
+  train:
+    handler: src/train.handler
+
   listen: 
     handler: src/app.handler
     events:

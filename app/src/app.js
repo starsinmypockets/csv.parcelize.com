@@ -5,9 +5,7 @@ const passport = require('passport')
 const Strategy = require('passport-http-bearer').Strategy
 const api = require('./api.js')
 const app = express()
-
-console.log(process.env)
-//const port = config.appPort
+const http = require('http')
 
 passport.serializeUser(function(user, done) {
   done(null, user)
@@ -60,9 +58,8 @@ app.post('/train', passport.authenticate('bearer'), async (req, res) => {
 
     const fieldNames = ["bucketName", "bucketUrl"]
     const _bx = api.formatReqFields(req.body, fieldNames)
-    const dataFields = req.body.dataFields
+    const body = {}
     
-
     // tweak keys:
     const bx = _bx.map(row => {
       return {
@@ -70,20 +67,39 @@ app.post('/train', passport.authenticate('bearer'), async (req, res) => {
         url: row.bucketUrl
       }
     })
+    
+    body.bx = bx
+    body.user = req.user
+    body.dataFields = req.body.dataFields
 
-    const trainingData = await api.getCSVData(bx)
-    
     const opts = {
-      trainingData: trainingData,
-      dataFields: dataFields
+      hostname: 'engine.parcelize.com',
+      port: 80,
+      path: '/train',
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json'
+      }
     }
-    
-    // @@TODO validate training data 
-    // if valid send response
-    // don't wait for training to finish
-    res.send(opts)
-    const bayes = await api.trainBucketizer(opts)
-    api.saveBayesModel({bayesModel: bayes, user: req.user})
+
+    const _req = http.request(opts, _res => {
+      let data = ''
+      _res.setEncoding('utf8')
+      _res.on('data', chunk => {
+        data += chunk
+      })
+      _res.on('end', () => {
+        console.log('res data', data)
+        res.send(data)
+      })
+      _res.on('error', err => {
+        console.log("ERR", err)
+        res.send({err: err})
+      })
+   })
+
+   _req.write(JSON.stringify(body))
+   _req.end()
   } catch (e) {
     console.log("CLASSIFY REQ ERROR", e)
     res.send(e)
