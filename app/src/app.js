@@ -186,6 +186,39 @@ app.post('/classify', passport.authenticate('bearer'), async (req, res) => {
   }
 })
 
+app.post('/dl-bucket', passport.authenticate('bearer'), async (req, res) => {
+  try {
+    const AWS = require('aws-sdk')  
+    const fileName = req.body.Key
+    console.log('DL', fileName, req.body.fileName)
+
+    const s3 = new AWS.S3({
+      apiVersion: '2006-03-01',
+      params: {Bucket: 'parcelize.parcels'},
+      region: 'us-east-1'
+    })
+
+    // validate permissions
+    const dl = await s3.getObject({
+      IfMatch: req.body.ETag,
+      Key: req.body.Key
+    })
+    .promise()
+    console.log('dl', dl)
+    
+    // parse bucket name
+    res.attachment('test.csv')
+    res.setHeader('content-type', dl.ContentType)
+    res.setHeader('content-length', dl.ContentLength)
+
+    return res.send(dl.Body)
+  } catch (e) {
+    console.log('DL-BUCKET')
+    throw e
+  }
+})
+
+
 async function postToS3(bx, req, res) {
   try {
 		const crypto = require('crypto')
@@ -210,7 +243,8 @@ async function postToS3(bx, req, res) {
           Body: csv
         }).promise()
       } 
-    })
+    }).filter(n => n)  // remove falsy
+
     return Promise.all(s3s)
   } catch (e) {
     console.log("WRITE CSV ERROR", e)
@@ -299,7 +333,7 @@ app.post('/create-user', async (req, res) => {
     const emailOpts = {
       from: 'admin@parcelize.com',
       to: user.email,
-      subject: email.subject,
+     subject: email.subject,
       text: email.text,
       user: user.toObject()
     }
