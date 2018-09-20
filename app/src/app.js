@@ -3,7 +3,6 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const passport = require('passport')
 const Strategy = require('passport-http-bearer').Strategy
-const archiver = require('archiver')
 const api = require('./api.js')
 const app = express()
 const http = require('http')
@@ -157,6 +156,7 @@ app.post('/classify', passport.authenticate('bearer'), async (req, res) => {
         'Content-Type': 'application/json',
       }
     }
+        //res.send(JSON.parse(data))
 
     const body = req.body
     body.user = req.user
@@ -167,9 +167,11 @@ app.post('/classify', passport.authenticate('bearer'), async (req, res) => {
       _res.on('data', chunk => {
         data += chunk
       })
-      _res.on('end', () => {
-        res.setHeader('content-type', 'application/json')
-        res.send(JSON.parse(data))
+      _res.on('end', async () => {
+        const s3res = await postToS3(JSON.parse(data), req, res)
+        console.log('s3 response', s3res)
+        // @@SECURITY not sure to share this with client
+        res.json(s3res)
       })
       _res.on('error', err => {
         console.log("ERR", err)
@@ -184,44 +186,103 @@ app.post('/classify', passport.authenticate('bearer'), async (req, res) => {
   }
 })
 
-
-app.post('/download', passport.authenticate('bearer'), async (req, res) => {
+async function postToS3(bx, req, res) {
   try {
-    const bx = await api.getData(req.body)
-    console.log("BX", Object.keys(bx.data))
-    const archive = archiver('zip', {
-      zlib: { level: 9 } // Sets the compression level.
+		const crypto = require('crypto')
+    const AWS = require('aws-sdk')  
+		const user = req.user || req.body.user || req.body.email
+		const hash = crypto.createHash('md5').update(user).digest("hex")
+
+    const s3 = new AWS.S3({
+      apiVersion: '2006-03-01',
+      params: {Bucket: 'parcelize.parcels'},
+      region: 'us-east-1'
     })
 
-    archive.on('warning', function(err) {
-      if (err.code === 'ENOENT') {
-        console.log('DOWNLOAD BUCKETS', err)
-      } else {
-        // throw error
-        throw err
-      }
-    })
+    const ts = new Date().getTime()
+    const s3s = Object.keys(bx).map(name => {
+      if (Array.isArray(bx[name]) && bx[name].length > 0) {
+        const filename = `${ts}_${hash}_${name}.csv`
+        const csv = api.json2csv(bx[name])
 
-    archive.on('error', function(err) {
-      console.log('DOWNLOAD BUCKETS')
-      throw err
+        return s3.upload({
+          Key: filename,
+          Body: csv
+        }).promise()
+      } 
     })
-
-    bx.data.forEach(bucket => {
-      const name = Object.keys(bucket)[0]
-      archive.append(api.json2csv(bucket[name]), {name: name+'.csv'})
-    })
-    
-    res.attachment('buckets.zip')
-    archive.pipe(res)
-    archive.finalize()
+    return Promise.all(s3s)
   } catch (e) {
-    console.log('DOWNLOAD BUCKETS', e)
-    res.send(e)
+    console.log("WRITE CSV ERROR", e)
+    return res.sendStatus(500)
   }
-})
+}
 
+/* async function doDownload(data, res) { */
+/*   const fs = require('fs') */
+	
+/* 	function makeid() { */
+/* 		var text = "" */
+/* 		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" */
 
+/* 		for (var i = 0; i < 5; i++) */
+/* 			text += possible.charAt(Math.floor(Math.random() * possible.length)) */
+
+/* 		return text */
+/* 	} */
+  
+/*  try { */
+/*     const mkdir = promisify(fs.mkdir) */
+/*     const rmdir = promisify(fs.rmdir) */
+/*     const writeFile = promisify(fs.writeFile) */
+/*     const bx = data */
+/*     const archive = archiver('zip', { */
+/*       zlib: { level: 9 } // Sets the compression level. */
+/*     }) */
+/*     const tmpDir = 'tmp_' + makeid() */
+
+/*     archive.on('warning', function(err) { */
+/*       if (err.code === 'ENOENT') { */
+/*         console.log('DOWNLOAD BUCKETS', err) */
+/*       } else { */
+/*         // throw error */
+/*         throw err */
+/*       } */
+/*     }) */
+
+/*     archive.on('error', function(err) { */
+/*       console.log('DOWNLOAD BUCKETS') */
+/*       throw err */
+/*     }) */
+
+/*     archive.on('close', async () => { */
+/*       rmdir(tmpDir) */
+/*     }) */
+
+/*     await mkdir(tmpDir) */
+
+/*     // write to /buckets/... */
+/*     // archive  /buckets */
+/*     const files = Object.keys(bx).map(name => { */
+/*       if (Array.isArray(bx[name]) && bx[name].length > 0) { */
+        
+/*         return writeFile(tmpDir + '/' + name, api.json2csv(bx[name])) */
+/*       } */ 
+/*     }) */
+
+/*     await Promise.all(files) */
+
+/*     archive.directory(tmpDir, 'buckets') */
+    
+/*     res.attachment('buckets.zip') */
+/*     res.setHeader('content-type', 'application/octet-stream') */
+/*     archive.pipe(res) */
+/*     archive.finalize() */
+/*   } catch (e) { */
+/*     console.log('DOWNLOAD BUCKETS', e) */
+/*     res.send(e) */
+/*   } */
+/* } */
 
 app.post('/verify-user', passport.authenticate('bearer'), async (req, res) => {
   try {

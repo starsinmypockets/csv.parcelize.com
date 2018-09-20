@@ -13,6 +13,7 @@ provider:
       Action:
         - ses:SendEmail
         - ses:SendRawEmail
+        - s3:*
 
 functions:
   train:
