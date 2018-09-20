@@ -187,8 +187,8 @@ app.post('/classify', passport.authenticate('bearer'), async (req, res) => {
 
 app.post('/download', passport.authenticate('bearer'), async (req, res) => {
   try {
-    const bx = api.getData(req.body)
-    console.log("BX", Object.keys(bx))
+    const bx = await api.getData(req.body)
+    console.log("BX", Object.keys(bx.data))
     const archive = archiver('zip', {
       zlib: { level: 9 } // Sets the compression level.
     })
@@ -207,8 +207,9 @@ app.post('/download', passport.authenticate('bearer'), async (req, res) => {
       throw err
     })
 
-    Object.keys(bx).forEach(bk => {
-      archive.append(api.json2csv(bx[bk]), {name: bk+'.csv'})
+    bx.data.forEach(bucket => {
+      const name = Object.keys(bucket)[0]
+      archive.append(api.json2csv(bucket[name]), {name: name+'.csv'})
     })
     
     res.attachment('buckets.zip')
