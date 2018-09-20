@@ -226,7 +226,7 @@ class App extends Component {
         },
       })
 
-      return await res.blob()
+      return await res.text()
     } catch (e) {
       this.setState({
         route: 'has-error',
