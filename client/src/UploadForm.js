@@ -12,6 +12,11 @@ class UploadForm extends Component {
     this.state = {token: token}
   }
 
+  handleSubmit(e) {
+    e.preventDefault()
+    console.log("submit____________", this.props.values)
+    this.props.submitUploadForm(this.props.values)
+  }
 
   getUploadForm() {
     const {
@@ -41,7 +46,7 @@ class UploadForm extends Component {
           {errors["url"] &&
           touched["url"] && <div className="input-feedback">{errors["url"]}</div>}
         </div>
-        <button type="submit" onClick={this.props.submitUploadForm.bind(this, this.props.values)}>SUBMIT</button>
+        <button type="submit" onClick={this.handleSubmit.bind(this)}>SUBMIT</button>
       </form>
     )
   }

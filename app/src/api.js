@@ -1,4 +1,4 @@
-const {User, Bayes} = require('./db.js')
+const {User, Bayes, Data} = require('./db.js')
 const Bucketizer = require('./Bucketizer.js')
 const stopwords = require('./stopwords/index.js')
 
@@ -182,4 +182,19 @@ const api = module.exports = {
       log("SAVE MODEL", e)
     }
   },
+  json2csv: (json) => {
+    const Json2csvParser = require('json2csv').Parser
+    try {
+      const parser = new Json2csvParser()
+      const csv = parser.parse(json)
+      return csv
+    } catch (e) {
+      console.log("JSON2CSV", e)
+      return false
+    }
+  },
+
+  getData: (opts) => {
+    return Data.findOne(opts)
+  }
 }

@@ -6,29 +6,11 @@ import './App.css'
 import LoginForm from './LoginForm.js'
 import TrainModelForm from './TrainModelForm.js'
 import UploadForm from './UploadForm.js'
+import {getToken} from './utils.js'
 
 const baseUrl = "https://beemsk0b9h.execute-api.us-east-1.amazonaws.com/dev"
 
 // utils
-function getUrlVars() {
-    var vars = {};
-    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-        vars[key] = value;
-    });
-    return vars;
-}
-
-function getUrlParam(parameter, defaultvalue) {
-    var urlparameter = defaultvalue;
-    if(window.location.href.indexOf(parameter) > -1){
-        urlparameter = getUrlVars()[parameter];
-        }
-    return urlparameter;
-}
-
-function getToken() {
-  return getUrlParam('token', false)
-}
 
 class App extends Component {
   constructor(props, context) {
@@ -46,7 +28,14 @@ class App extends Component {
   }
 
   componentDidUpdate() {
-    if (this.state.polling && this.state.polling > 0) {
+    // handle polling for resources
+    if (this.state.route === 'model-submit' && this.state.polling && this.state.polling > 0) {
+      setTimeout(() => {
+        this.getBucketInfo()
+      }, 1200)
+    }
+    
+    if (this.state.route === 'classify-submit' && this.state.polling && this.state.polling > 0) {
       setTimeout(() => {
         this.getBucketInfo()
       }, 1200)
@@ -119,7 +108,7 @@ class App extends Component {
     const body = await res.json()
     console.log('server res', body)
     
-    if (body.trainingData) {
+    if (body.received) {
       // wait for model to be ready
       this.setState({
         route: 'model-submit',
@@ -166,10 +155,11 @@ class App extends Component {
     }
   }
   
-  async submitUploadForm(e, values) {
-    e.preventDefault()
+  async submitUploadForm(values) {
+    console.log("SUBMIT UPLOAD FORM", this, values)
     
-    const res = await fetch('/classify', {
+    this.setState({loaded: false})
+    const res = await fetch(baseUrl+'/classify', {
       method: "POST", 
       body: JSON.stringify(values),
       headers: {
@@ -179,6 +169,21 @@ class App extends Component {
     })
 
     const body = await res.json()
+    console.log('server res', body)
+    
+    if (body.received) {
+      // wait for model to be ready
+      this.setState({
+        route: 'classify-submit',
+        loaded: true,
+        polling: 10
+      })
+    } else {
+      this.setState({
+        route: 'has-error',
+        error: body,
+      })
+    }
   }
 
   // if this gets any bigger, plug cra router in
@@ -215,6 +220,10 @@ class App extends Component {
           submitUploadForm={this.submitUploadForm.bind(this)}
         />
         break
+      case "classify-submit":
+        return <div id="classify-submit">
+          <h2>Your download will begin shortly...</h2>
+        </div>
       case "has-error":
         return <div id="app-error">
           <p>{this.state.error}</p>

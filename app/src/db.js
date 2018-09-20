@@ -1,7 +1,12 @@
-const config = require('./config.js')[process.env.ENV]
 const mongoose = require('mongoose')
 
-mongoose.connect(config.mongoConnectString)
+try {
+  const conStr = process.env.PARCELIZE_MLAB_CONNECT
+  mongoose.connect(conStr)
+} catch (e) {
+  console.log("ERROR INSTANTIATE MONGO")
+  throw e
+}
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -22,7 +27,16 @@ const bayesModel = new mongoose.Schema({
   bayesModel: { type: Object, required: true }, // JSON
 })
 
+const dataModel = new mongoose.Schema({
+  user: { type: String, required: true },
+  created: { type: Date, default: Date.now },
+  updated: { type: Date, default: Date.now },
+  dataType: { type: String, enum: ['trainingData', 'bucketData']},
+  data: { type: Object, required: true }, // JSON
+})
+
 module.exports = {
   User: mongoose.model('User', userSchema),
   Bayes: mongoose.model('Bayes', bayesModel),
+  Data: mongoose.model('Data', dataModel)
 }

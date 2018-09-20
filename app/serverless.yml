@@ -47,6 +47,7 @@ functions:
             allowCredentials: true
     environment:
       ENV: aws
+      PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
     iamRoleStatements:
       - Effect: Allow
         Resource: "*"
