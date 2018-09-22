@@ -3,17 +3,13 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const passport = require('passport')
 const Strategy = require('passport-http-bearer').Strategy
+const LocalStrategy = require('passport-local').Strategy
 const api = require('./api.js')
 const app = express()
 const http = require('http')
+const SESSION_SECRET = "2390vhdiaj0943287ufwiecjaskjhdsalhfslf"
+const { ensureLoggedIn } = require('connect-ensure-login')
 
-passport.serializeUser(function(user, done) {
-  done(null, user)
-})
-
-passport.deserializeUser(function(user, done) {
-  done(null, user)
-})
 
 passport.use(new Strategy(async (token, done)=> {
   try {
@@ -25,8 +21,33 @@ passport.use(new Strategy(async (token, done)=> {
   }
 }))
 
+passport.use(new LocalStrategy(async (username, password, done) => {
+  try {
+    console.log("LOCAL", username, password)
+    const apiRes = await api.verifyPasswordAuth({email: username, candidatePassword: password})
+    console.log("LOCAL", apiRes)
+    if (apiRes) return done(null, apiRes) // pass
+    return done(null, false) // fail
+  } catch (e) {
+    console.log("PASSWORD STRATEGY", e)
+    return done(e, false) // fail
+  }
+}))
+
+app.use(require('express-session')({ secret: SESSION_SECRET, resave: false, saveUninitialized: false, cookie: { maxAge: 60000 } }))
 app.use(bodyParser.json())
-app.use(passport.initialize({session: false}))
+app.use(passport.initialize())
+app.use(passport.session())
+
+passport.serializeUser(function(user, done) {
+  console.log("SERIALIZE", user)
+  done(null, user)
+})
+
+passport.deserializeUser(function(user, done) {
+  console.log("DE-SERIALIZE", user)
+  done(null, user)
+})
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*")
@@ -51,14 +72,58 @@ app.get('/test', (req, res) => {
   })
 })
 
-app.post('/foo', (req, res) => {
-  res.send(req.body)
+app.post('/login', passport.authenticate('local'), (req, res) => {
+    res.sendStatus(200)
+  }
+)
+
+app.post('/verify-user', passport.authenticate('bearer'), async (req, res) => {
+  try {
+    res.send({verified: true, appUses: 1, trainingModel: true})
+  } catch (e) {
+    res.sendStatus(401)
+  }
 })
 
-app.post('/train', passport.authenticate('bearer'), async (req, res) => {
+app.post('/create-user', async (req, res) => {
+  try {
+    const user = await api.createUser(req.body)
+    const email = require('./email.js').authenticate
+    const emailOpts = {
+      from: 'admin@parcelize.com',
+      to: user.email,
+     subject: email.subject,
+      text: email.text,
+      user: user.toObject()
+    }
+
+    await api.sendAuthEmail(emailOpts)
+    res.json(user)
+  } catch (e) {
+    console.log("CREATE-USER", e)
+    res.sendStatus(500)
+  }
+})
+
+app.post('/register-user', passport.authenticate('bearer'), async (req, res) => {
+  try {
+    req.body.verified = true
+    req.body.email = req.user
+    console.log('REGISTER', req.body)
+    await api.updateUser(req.body)
+    res.sendStatus(200)
+  } catch (e) {
+    console.log('REGISTER USER', e)
+    res.sendStatus(500)
+  }
+})
+
+
+app.post('/train', ensureLoggedIn('/login'), async (req, res) => {
   // seperate fields from indexes
   try {
 
+    
     const fieldNames = ["bucketName", "bucketUrl"]
     const _bx = api.formatReqFields(req.body, fieldNames)
     const body = {}
@@ -108,7 +173,7 @@ app.post('/train', passport.authenticate('bearer'), async (req, res) => {
   }
 })
 
-app.get('/training-data', passport.authenticate('bearer'), async (req, res) => {
+app.get('/training-data', ensureLoggedIn('/login'), async (req, res) => {
   try {
     const opts = {
       hostname: 'engine.parcelize.com',
@@ -145,7 +210,7 @@ app.get('/training-data', passport.authenticate('bearer'), async (req, res) => {
   }
 })
 
-app.post('/classify', passport.authenticate('bearer'), async (req, res) => {
+app.post('/classify', ensureLoggedIn('/login'), async (req, res) => {
   try {
     const opts = {
       hostname: 'engine.parcelize.com',
@@ -186,7 +251,7 @@ app.post('/classify', passport.authenticate('bearer'), async (req, res) => {
   }
 })
 
-app.post('/dl-bucket', passport.authenticate('bearer'), async (req, res) => {
+app.post('/dl-bucket', ensureLoggedIn('/login'), async (req, res) => {
   try {
     const AWS = require('aws-sdk')  
     const fileName = req.body.Key
@@ -217,7 +282,6 @@ app.post('/dl-bucket', passport.authenticate('bearer'), async (req, res) => {
     throw e
   }
 })
-
 
 async function postToS3(bx, req, res) {
   try {
@@ -252,97 +316,4 @@ async function postToS3(bx, req, res) {
   }
 }
 
-/* async function doDownload(data, res) { */
-/*   const fs = require('fs') */
-	
-/* 	function makeid() { */
-/* 		var text = "" */
-/* 		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" */
-
-/* 		for (var i = 0; i < 5; i++) */
-/* 			text += possible.charAt(Math.floor(Math.random() * possible.length)) */
-
-/* 		return text */
-/* 	} */
-  
-/*  try { */
-/*     const mkdir = promisify(fs.mkdir) */
-/*     const rmdir = promisify(fs.rmdir) */
-/*     const writeFile = promisify(fs.writeFile) */
-/*     const bx = data */
-/*     const archive = archiver('zip', { */
-/*       zlib: { level: 9 } // Sets the compression level. */
-/*     }) */
-/*     const tmpDir = 'tmp_' + makeid() */
-
-/*     archive.on('warning', function(err) { */
-/*       if (err.code === 'ENOENT') { */
-/*         console.log('DOWNLOAD BUCKETS', err) */
-/*       } else { */
-/*         // throw error */
-/*         throw err */
-/*       } */
-/*     }) */
-
-/*     archive.on('error', function(err) { */
-/*       console.log('DOWNLOAD BUCKETS') */
-/*       throw err */
-/*     }) */
-
-/*     archive.on('close', async () => { */
-/*       rmdir(tmpDir) */
-/*     }) */
-
-/*     await mkdir(tmpDir) */
-
-/*     // write to /buckets/... */
-/*     // archive  /buckets */
-/*     const files = Object.keys(bx).map(name => { */
-/*       if (Array.isArray(bx[name]) && bx[name].length > 0) { */
-        
-/*         return writeFile(tmpDir + '/' + name, api.json2csv(bx[name])) */
-/*       } */ 
-/*     }) */
-
-/*     await Promise.all(files) */
-
-/*     archive.directory(tmpDir, 'buckets') */
-    
-/*     res.attachment('buckets.zip') */
-/*     res.setHeader('content-type', 'application/octet-stream') */
-/*     archive.pipe(res) */
-/*     archive.finalize() */
-/*   } catch (e) { */
-/*     console.log('DOWNLOAD BUCKETS', e) */
-/*     res.send(e) */
-/*   } */
-/* } */
-
-app.post('/verify-user', passport.authenticate('bearer'), async (req, res) => {
-  try {
-    res.send({verified: true, appUses: 1, trainingModel: true})
-  } catch (e) {
-    res.sendStatus(401)
-  }
-})
-
-app.post('/create-user', async (req, res) => {
-  try {
-    const user = await api.createUser(req.body)
-    const email = require('./email.js').authenticate
-    const emailOpts = {
-      from: 'admin@parcelize.com',
-      to: user.email,
-     subject: email.subject,
-      text: email.text,
-      user: user.toObject()
-    }
-
-    await api.sendAuthEmail(emailOpts)
-    res.json(user)
-  } catch (e) {
-    console.log("CREATE-USER", e)
-    res.sendStatus(500)
-  }
-})
 module.exports.handler = serverless(app)

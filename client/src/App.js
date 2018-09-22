@@ -3,10 +3,12 @@ import {Button, Nav, Navbar, NavItem, NavDropdown, MenuItem, Grid, Row, Col, Lis
 import Loader from 'react-loader'
 import logo from './logo.svg'
 import './App.css'
-import LoginForm from './LoginForm.js'
-import TrainModelForm from './TrainModelForm.js'
-import UploadForm from './UploadForm.js'
-import {getToken} from './utils.js'
+import LoginForm from './LoginForm'
+import SignupForm from './SignupForm'
+import TrainModelForm from './TrainModelForm'
+import UploadForm from './UploadForm'
+import PasswordForm from './PasswordForm'
+import {getToken} from './utils'
 import filesaver from 'file-saver'
 
 const baseUrl = "https://beemsk0b9h.execute-api.us-east-1.amazonaws.com/dev"
@@ -43,7 +45,7 @@ class App extends Component {
     return body
   }
 
-  async loginAction(opts) {
+  async signupAction(opts) {
     console.log("Login Action - app", opts)
     const res = await fetch(baseUrl+'/create-user', {
       method: "POST", 
@@ -59,6 +61,48 @@ class App extends Component {
       this.setState({route: "bad-submit"})
     } else {
       this.setState({route: "submit-sent"})
+    } 
+  }
+  
+  async passwordAction(opts) {
+    console.log("Password Action - app", opts)
+    const res = await fetch(baseUrl+'/register-user', {
+      method: "POST", 
+      body: JSON.stringify(opts),
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": "Bearer " + getToken(),
+      },
+    })
+
+    if (!res.ok) {
+      this.setState({route: "bad-submit"})
+    } else {
+      this.setState({route: "has-account"})
+    } 
+  }
+  
+  async loginAction(opts) {
+    console.log("LoginAction - app", opts)
+    const res = await fetch(baseUrl+'/login', {
+      method: "POST", 
+      body: JSON.stringify(opts),
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": "Bearer " + getToken(),
+      },
+    })
+
+    console.log("LOGIN RES",res.status)
+
+    if (res.status > 299) {
+      this.setState({route: 'login-fail'})
+    }
+
+    if (!res.ok) {
+      this.setState({route: "bad-submit"})
+    } else {
+      this.setState({route: "has-account"})
     } 
   }
 
@@ -79,7 +123,7 @@ class App extends Component {
     } else { 
       const body = await res.json()
       
-      body.route = "has-key"
+      body.route = "has-token"
       console.log(body)
       this.setState(body)
     }
@@ -187,7 +231,13 @@ class App extends Component {
         const blob = await this.downloadBucket(link)
         const name = link.key.split('.')[0].split('_').slice(-1)[0]
 
-        return <a href={"data:text/csv;charset=utf8,"+encodeURIComponent(blob)} download={name+".csv"}>DOWNLOAD {name} CSV</a>
+        return (
+          <li>
+            <h4 className="bucketDl">
+              <a href={"data:text/csv;charset=utf8,"+encodeURIComponent(blob)} download={name+".csv"}>DOWNLOAD {name} CSV</a>
+            </h4>
+          </li>
+        )
       })
 
       const links = await Promise.all(linksArray)
@@ -244,19 +294,40 @@ class App extends Component {
             <p className="lead">Something went wrong with your request. Please try again later</p>
           </div>
         break
+      case "signup":
+        return (
+          <SignupForm
+            signupAction={this.signupAction.bind(this)}
+          /> 
+        )
+        break
+      case "login":
+        return (
+          <LoginForm
+            loginAction={this.loginAction.bind(this)}
+          /> 
+        )
+        break
       case "submit-sent":
         return <div className="submit-sent">
             <h2>Thank you!</h2>
             <p className="lead">Please check your email for your login link.</p>
           </div>
         break
-      case "has-key":
+      case "has-token":
+        return <PasswordForm 
+          passwordAction={this.passwordAction.bind(this)}
+        />
+        break
+      case "has-account":
         return <TrainModelForm
           appUses={this.state.appUses}
           trainingModel={this.state.trainingModel}
           submitModelTrainForm={this.submitModelTrainFormAction.bind(this)}
         />
         break
+      case "login-fail":
+        return <p>Login fail</p>
       case "model-submit":
         return <div id="model-submit">
           <h2>Just a moment while we create a machine learning model</h2>
@@ -276,6 +347,7 @@ class App extends Component {
       case "has-dl-links":
         return (
           <div id="dl-links">
+            <h2>Your parcelized csv files:</h2>
             <ul>
               {this.state.dlLinks}
             </ul>
@@ -288,42 +360,121 @@ class App extends Component {
         </div>
         break
       default:
-        return (
-          <LoginForm
-            appUses={this.state.appUses}
-            loginAction={this.loginAction.bind(this)}
-          /> 
-        )
+        return ""
     }
   }
 
   renderIntro() {
+    const liStyle = {textAlign:'left', listStyle: 'none'}
+
     return (
+    <div className="welcome" style={liStyle}>    
       <Row className="intro-header">
         <Col xs={12}>
-          <h2>So much to do, so little time</h2>
-          <p>How much of your time do you spend sorting things? Spreadsheets, emails, products, events, catalog items, your laundry.</p>
-          <p>We can't help you with your laundry but we can help to make sense of the constant stream of information that comes across your desk. Whether you are looking for a better workflow to help categorize products, to get the right information to the right department, or to make better use of the data you collect and rely upon, we are here to help.</p>
+          <h2 style={{textAlign:'center'}}>Sort CSV rows into categories</h2>
+          <p className="lead">A simple tool for sorting csv rows based on text analysis.</p>
+          <button onClick={(e) => {e.preventDefault();this.setState({route:'signup'})}}>Signup is free</button>
+          <br />
+          <p className="lead">Some uses include:</p>
+          <ul>
+            <li><h4>sentiment analysis (<strong>Pro</strong>, <strong>Con</strong>)</h4></li>
+            <li><h4>score responses (<strong>Strong</strong>, <strong>Weak</strong>)</h4></li>
+            <li><h4>prioritize events (<strong>Attend</strong>, <strong>RSVP-only</strong>, <strong>Ignore</strong>)</h4></li>
+            <li><h4>sort email (<strong>Urgent</strong>, <strong>High-priority</strong>, <strong>Low-priority</strong>, <strong>Spam</strong>)</h4></li>
+            <li><h4>automate decision making (<strong>Call back</strong>, <strong>Send email</strong>, <strong>Ignore</strong>)</h4></li>
+          </ul>
         </Col>
       </Row>
+    <Row><br /></Row>
+      <Row>
+        <Col xs={12}>
+          <p className="lead">While there's no replacement for the wit and wisdom of humanity, we don't need to spend hours sifting through data. Let the machine do the work - drink a cup of coffee and press go. Review the results and tweak. Adjust. Leave the tedium out of your day.</p>
+          <ul>
+            <li>
+              <h4 class="instruction-step">
+                Step 1: Sort your csv's into separate files by category (ex: attend, ignore)
+              </h4>
+            </li>
+            <li>
+              <h4 class="instruction-step">
+                Step 2: Upload the files to google docs
+              </h4>
+            </li>
+            <li>
+              <h4 class="instruction-step">
+                Step 3: Provide links to the files and tell us which columns to consider
+              </h4>
+            </li>
+            <li>
+              <h4 class="instruction-step">
+                Step 4: Run the trainer and take a look at the results
+              </h4>
+            </li>
+            <li>
+              <h4 class="instruction-step">
+                Step 5: Upload a csv of uncategorized data (make sure it has the appropriate column headers)
+              </h4>
+            </li>
+            <li>
+              <h4 class="instruction-step">
+                Step 6: Download your sorted files
+              </h4>
+            </li>
+          </ul>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <ul style={{listStyle: 'none'}}>
+            <li><h3 className="lead"><a href="#">View a demo</a></h3></li>
+            <li><h3 className="lead"><a href="#">Read an article on Medium</a></h3></li>
+          </ul>
+        </Col>
+      </Row>
+    </div>
     )
   }
-
 
   render() {
     console.log("render",this.state)
     const header = (this.state.route === "home") ? this.renderIntro() : ""
     const body = this.route()
+    const accountMenu = (this.state.loggedIn) ? 
+        <Row>
+          <Col xs={0} md={9} />
+          <Col xs={12} md={3}>
+            <div class="account">
+              <a>Account</a>
+              <span> |  </span>
+              <a>Models</a>
+              <span> |  </span>
+              <a>Logout</a>
+            </div>
+          </Col>
+        </Row>
+      :
+        <Row>
+          <Col xs={0} md={9} />
+          <Col xs={12} md={3}>
+            <div class="account">
+              <a href="#" onClick={(e => {e.preventDefault(); this.setState({route: 'login'})})}>Login</a>
+              <span> |  </span>
+              <a href="#" onClick={(e => {e.preventDefault(); this.setState({route: 'signup'})})}>Signup</a>
+              <span> |  </span>
+              <a>Models</a>
+            </div>
+          </Col>
+        </Row>
     return (
       <div className="App">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"/>
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Parcelize -- CSV</h1>
-          <p className="lead">Dreamtigers uses machine learning to create intelligent pipelines for your data, and tells you things that you didn\'t know about your operations."</p>
         </header>
         <Loader loaded={this.state.loaded}>
           <Grid className="main">
+            {accountMenu}
             {header}
             {body}
           </Grid>

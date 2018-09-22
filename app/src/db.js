@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 try {
   const conStr = process.env.PARCELIZE_MLAB_CONNECT
-  mongoose.connect(conStr)
+  mongoose.connect(conStr, {auto_reconnect:true})
 } catch (e) {
   console.log("ERROR INSTANTIATE MONGO")
   throw e
@@ -17,8 +17,10 @@ const userSchema = new mongoose.Schema({
   created: { type: Date, default: Date.now },
   updated: { type: Date, default: Date.now },
   verified: { type: Boolean, default: false },
+  password: { type: String },
   appUses: { type: Number, default: 0 },
 })
+
 
 const bayesModel = new mongoose.Schema({
   user: { type: String, required: true },

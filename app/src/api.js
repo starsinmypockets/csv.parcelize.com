@@ -17,12 +17,50 @@ const api = module.exports = {
     }
   },
 
+  updateUser: async (opts) => {
+    try {
+      const user = await api.findUserByEmail(opts.email)
+
+      if (opts.password)  {
+        const bcrypt = require('bcryptjs')
+        const { promisify } = require('util')
+        const SALT_WORK_FACTOR = 10
+        const genSalt = promisify(bcrypt.genSalt)
+        const hash = promisify(bcrypt.hash)
+        const salt = await genSalt(SALT_WORK_FACTOR)
+        const pwHash = await hash(opts.password, salt)
+
+        opts.password = pwHash
+      }
+
+      return user.update(opts)
+    } catch (e) {
+      log("UPDATE-USER", e)
+      return false
+    }
+  },
+
   verifyUserAuth: async (opts) => {
     try {
       const user = await User.findOne({bearerToken: opts.bearerToken})
       return Promise.resolve(user)
     } catch (e) {
       log (e)
+      return false
+    }
+  },
+  
+  // returns user
+  verifyPasswordAuth: async (opts) => {
+    try {
+      console.log('PW Auth api', opts)
+      const bcrypt = require('bcryptjs')
+      const user = await api.findUserByEmail(opts.email)
+      console.log("PW Auth api", user)
+      const isMatch = await bcrypt.compare(opts.candidatePassword, user.password)
+      return (isMatch) ? user : false
+    } catch (e) {
+      log("VERIFY PW AUTH", e)
       return false
     }
   },
@@ -182,6 +220,7 @@ const api = module.exports = {
       log("SAVE MODEL", e)
     }
   },
+
   json2csv: (json) => {
     const Json2csvParser = require('json2csv').Parser
     try {
