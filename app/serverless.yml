@@ -18,12 +18,14 @@ provider:
 functions:
   authorize:
     handler: src/authorize.handler
+    environment:
+      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
   
   login:
     handler: src/login.handler
     events:
         - http:
-            path: login
+            path: /login
             method: post
             cors: true
     environment:

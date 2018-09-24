@@ -1,30 +1,30 @@
 const jwt = require('jsonwebtoken')
 const api = require('./api')
 const JWT_EXPIRATION_TIME = 3600
-
+console.log("fpp")
 module.exports.handler = async (event, context) => {
-  console.log(event)
-  context.callbackWaitsForEmptyEventLoop = false
+  console.log("EVENT",event)
+    const {username, password} = JSON.parse(event.body)
   
   try {
-    const user = await api.verifyPasswordAuth({
-      email: event.body.username,
-      password: event.body.password
+    const _user = await api.verifyPasswordAuth({
+      email: username,
+      password: password
     })
-    console.log('user', user)
 
-    const sessUser = {
-      username: user.email,
-      appUses: user.appUses,
-      id: user._id
+    const user = {
+      username: _user.email,
+      appUses: _user.appUses,
+      id: _user._id
     }
 
-    const token = jwt.sign({ sessUser }, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRATION_TIME })
+    const token = await jwt.sign({ user }, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRATION_TIME })
+
+    console.log("tok", jwt)
 
     return Promise.resolve({ 
-      auth: true,
-      token: token,
-      user: sessUser
+      statusCode: 200,
+      body: JSON.stringify({auth: true, token: token})
     })
   } catch (e) {
     console.log("LOGIN ERR", e)

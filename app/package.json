@@ -17,6 +17,7 @@
     "formik": "^1.2.0",
     "json2csv": "^4.2.1",
     "jsonwebtoken": "^8.3.0",
+    "lodash": "^4.17.11",
     "mongodb": "^3.1.4",
     "mongoose": "^5.2.12",
     "nodemailer": "^4.6.8",
