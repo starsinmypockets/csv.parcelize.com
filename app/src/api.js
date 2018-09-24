@@ -57,7 +57,7 @@ const api = module.exports = {
       const bcrypt = require('bcryptjs')
       const user = await api.findUserByEmail(opts.email)
       console.log("PW Auth api USER", user)
-      const isMatch = await bcrypt.compare(opts.candidatePassword, user.password)
+      const isMatch = await bcrypt.compare(opts.password, user.password)
       console.log("PW Auth api isMatch", isMatch)
       return (isMatch) ? user : false
     } catch (e) {

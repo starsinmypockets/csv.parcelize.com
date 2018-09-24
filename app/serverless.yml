@@ -19,9 +19,26 @@ functions:
   authorize:
     handler: src/authorize.handler
   
+  login:
+    handler: src/login.handler
+    events:
+        - http:
+            path: login
+            method: post
+            cors: true
+    environment:
+      ENV: aws
+      PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
+      SLS_DEBUG: "*"
+      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+
   listen: 
     handler: src/app.handler
     events:
+      - http:
+          path: /test
+          method: ANY
+          cors: true
       - http:
           path: /
           method: ANY
@@ -41,6 +58,10 @@ functions:
         Action:
           - ses:SendEmail
           - ses:SendRawEmail
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          - logs:DescribeLogStreams
 package:
   include:
     - src/**

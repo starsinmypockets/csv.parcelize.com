@@ -2,30 +2,35 @@ const jwt = require('jsonwebtoken')
 const api = require('./api')
 const JWT_EXPIRATION_TIME = 3600
 
-module.exports.handler = async (event, context, callback) => {
-  const { username, password } = JSON.parse(event.body)
-
+module.exports.handler = async (event, context) => {
+  console.log(event)
+  context.callbackWaitsForEmptyEventLoop = false
+  
   try {
-    const user = await api.verifyPasswordAuth(username, password)
-    const token = jwt.sign({ user }, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRATION_TIME })
-    // send authorization
-    callback(null, { 
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({token})
+    const user = await api.verifyPasswordAuth({
+      email: event.body.username,
+      password: event.body.password
+    })
+    console.log('user', user)
+
+    const sessUser = {
+      username: user.email,
+      appUses: user.appUses,
+      id: user._id
+    }
+
+    const token = jwt.sign({ sessUser }, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRATION_TIME })
+
+    return Promise.resolve({ 
+      auth: true,
+      token: token,
+      user: sessUser
     })
   } catch (e) {
-    // send refuse authorization
-    callback(null, { // Error response
-      statusCode: 401,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({
-        error: e.message,
-      }),
+    console.log("LOGIN ERR", e)
+    return Promise.reject({ // Error response
+      auth: false,
+      body: e
     })
   }
 }

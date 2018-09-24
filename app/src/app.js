@@ -1,80 +1,16 @@
 const serverless = require('serverless-http')
 const express = require('express')
 const bodyParser = require('body-parser')
-const passport = require('passport')
-const Strategy = require('passport-http-bearer').Strategy
-const LocalStrategy = require('passport-local').Strategy
 const api = require('./api.js')
 const app = express()
-const session = require('express-session')
 const http = require('http')
+const jwt = require('jsonwebtoken')
 const cors = require('cors')
-const SESSION_SECRET = "2390vhdiaj0943287ufwiecjaskjhdsalhfslf"
-const { ensureLoggedIn } = require('connect-ensure-login')
+const JWT_EXPIRATION_TIME = 3600
 
-
-passport.use(new Strategy(async (token, done)=> {
-  try {
-    const user = await api.findUserByToken(token)
-  if (!user) return done(null, false)
-    return done(null, user.email, {scope: 'all'})
-  } catch (e) {
-    return done(e)
-  }
-}))
-
-passport.use(new LocalStrategy(async (username, password, done) => {
-  try {
-    console.log("LOCAL", username, password)
-    const apiRes = await api.verifyPasswordAuth({email: username, candidatePassword: password})
-    console.log("LOCAL", apiRes)
-    if (apiRes) return done(null, apiRes) // pass
-    return done(null, false) // fail
-  } catch (e) {
-    console.log("PASSWORD STRATEGY", e)
-    return done(e, false) // fail
-  }
-}))
-
-app.use(session({ 
-  secret: SESSION_SECRET, 
-  resave: false, 
-  saveUninitialized: false, 
-  cookie: { 
-    domain: 'csv.parcelize.com',
-    maxAge: 60000 
-  } 
-}))
 app.use(bodyParser.json())
-app.use(passport.initialize())
-app.use(passport.session())
-
-passport.serializeUser(function(user, done) {
-  console.log("SERIALIZE", user._id)
-  return done(null, user._id)
-})
-
-passport.deserializeUser(async (id, done) => {
-  console.log("DE-SERIALIZE", id)
-  const user = await api.findUser({_id: id})
-  return done(null, user.email)
-})
-
 app.use(cors())
 
-/* app.use(function(req, res, next) { */
-/*   res.header("Access-Control-Allow-Origin", "*") */
-/*   res.header("Access-Control-Allow-Credentials", true) */
-/*   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization", "Cookie") */
-/*   res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE") */
-/*   res.header("Cache-Control", "'max-age=0'") */
-/*   res.header('set-cookie', 'foobar') */
-/*   next() */
-/* }) */
-
-/**
- * ROUTES
- **/
 app.get('/', (req, res) => {
   res.send('hello')
 })
@@ -86,12 +22,35 @@ app.get('/test', (req, res) => {
   })
 })
 
-app.post('/login', passport.authenticate('local'), (req, res) => {
-    res.sendStatus(200)
-  }
-)
+app.get('/protected', (req, res) => {
+  res.send({
+    protected: true,
+    auth: "heck ya"
+  })
+})
 
-app.post('/verify-user', passport.authenticate('bearer'), async (req, res) => {
+app.post('/login', async (req, res) => {
+	const { username, password } = JSON.parse(req.body)
+
+	try {
+		const user = await api.verifyPasswordAuth(username, password)
+		const token = jwt.sign({ user }, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRATION_TIME })
+    
+    return res.send({
+      statusCode: 200,
+			body: JSON.stringify({token})
+    })
+	} catch (e) {
+    res.send({
+			statusCode: 401,
+			body: JSON.stringify({
+				error: e.message,
+			}),
+		})
+	}
+})
+
+app.post('/verify-user', async (req, res) => {
   try {
     res.send({verified: true, appUses: 1, trainingModel: true})
   } catch (e) {
@@ -99,6 +58,7 @@ app.post('/verify-user', passport.authenticate('bearer'), async (req, res) => {
   }
 })
 
+// @TODO need to put this in an unprotected endpoint
 app.post('/create-user', async (req, res) => {
   try {
     const user = await api.createUser(req.body)
@@ -119,7 +79,7 @@ app.post('/create-user', async (req, res) => {
   }
 })
 
-app.post('/register-user', passport.authenticate('bearer'), async (req, res) => {
+app.post('/register-user', async (req, res) => {
   try {
     req.body.verified = true
     req.body.email = req.user
@@ -132,12 +92,9 @@ app.post('/register-user', passport.authenticate('bearer'), async (req, res) => 
   }
 })
 
-
-app.post('/train', ensureLoggedIn('/login'), async (req, res) => {
+app.post('/train', async (req, res) => {
   // seperate fields from indexes
   try {
-
-    
     const fieldNames = ["bucketName", "bucketUrl"]
     const _bx = api.formatReqFields(req.body, fieldNames)
     const body = {}
@@ -187,7 +144,7 @@ app.post('/train', ensureLoggedIn('/login'), async (req, res) => {
   }
 })
 
-app.get('/training-data', ensureLoggedIn('/login'), async (req, res) => {
+app.get('/training-data', async (req, res) => {
   try {
     const opts = {
       hostname: 'engine.parcelize.com',
@@ -224,7 +181,7 @@ app.get('/training-data', ensureLoggedIn('/login'), async (req, res) => {
   }
 })
 
-app.post('/classify', ensureLoggedIn('/login'), async (req, res) => {
+app.post('/classify', async (req, res) => {
   try {
     const opts = {
       hostname: 'engine.parcelize.com',
@@ -265,7 +222,7 @@ app.post('/classify', ensureLoggedIn('/login'), async (req, res) => {
   }
 })
 
-app.post('/dl-bucket', ensureLoggedIn('/login'), async (req, res) => {
+app.post('/dl-bucket', async (req, res) => {
   try {
     const AWS = require('aws-sdk')  
     const fileName = req.body.Key
