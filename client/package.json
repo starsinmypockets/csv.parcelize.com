@@ -34,7 +34,7 @@
   },
   "proxy": {
     "/api": {
-      "target": "https://beemsk0b9h.execute-api.us-east-1.amazonaws.com/dev/",
+      "target": "https://4tflbbrqj2.execute-api.us-east-1.amazonaws.com/dev/",
       "changeOrigin": "true"
     }
   },

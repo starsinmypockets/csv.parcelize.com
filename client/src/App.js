@@ -11,7 +11,7 @@ import PasswordForm from './PasswordForm'
 import {getToken} from './utils'
 import filesaver from 'file-saver'
 
-const baseUrl = "https://beemsk0b9h.execute-api.us-east-1.amazonaws.com/dev"
+const baseUrl = "https://4tflbbrqj2.execute-api.us-east-1.amazonaws.com/dev"
 
 class App extends Component {
   constructor(props, context) {
@@ -26,6 +26,11 @@ class App extends Component {
     if (token) {
       this.verifyTokenAction()
     }
+  }
+
+  componentWillMount() {
+    this.loginAction()
+
   }
 
   componentDidUpdate() {
@@ -46,7 +51,7 @@ class App extends Component {
   }
 
   async signupAction(opts) {
-    console.log("Login Action - app", opts)
+    console.log("Signup Action - app", opts)
     const res = await fetch(baseUrl+'/create-user', {
       method: "POST", 
       body: JSON.stringify(opts),
@@ -65,7 +70,7 @@ class App extends Component {
   }
   
   async passwordAction(opts) {
-    console.log("Password Action - app", opts)
+    console.log("Register Action - app", opts)
     const res = await fetch(baseUrl+'/register-user', {
       method: "POST", 
       body: JSON.stringify(opts),
@@ -84,16 +89,20 @@ class App extends Component {
   
   async loginAction(opts) {
     console.log("LoginAction - app", opts)
+    const _opts = {
+      username: 'starsinmypockets@gmail.com', //opts.email,
+      password: '23skidoo' //opts.password
+    }
     const res = await fetch(baseUrl+'/login', {
       method: "POST", 
-      body: JSON.stringify(opts),
+      body: JSON.stringify(_opts),
+      mode: 'cors',
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Authorization": "Bearer " + getToken(),
       },
     })
 
-    console.log("LOGIN RES",res.status)
+    console.log("LOGIN RES",res.status, document.cookie)
 
     if (res.status > 299) {
       this.setState({route: 'login-fail'})

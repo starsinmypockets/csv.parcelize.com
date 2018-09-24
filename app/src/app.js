@@ -6,7 +6,9 @@ const Strategy = require('passport-http-bearer').Strategy
 const LocalStrategy = require('passport-local').Strategy
 const api = require('./api.js')
 const app = express()
+const session = require('express-session')
 const http = require('http')
+const cors = require('cors')
 const SESSION_SECRET = "2390vhdiaj0943287ufwiecjaskjhdsalhfslf"
 const { ensureLoggedIn } = require('connect-ensure-login')
 
@@ -34,29 +36,41 @@ passport.use(new LocalStrategy(async (username, password, done) => {
   }
 }))
 
-app.use(require('express-session')({ secret: SESSION_SECRET, resave: false, saveUninitialized: false, cookie: { maxAge: 60000 } }))
+app.use(session({ 
+  secret: SESSION_SECRET, 
+  resave: false, 
+  saveUninitialized: false, 
+  cookie: { 
+    domain: 'csv.parcelize.com',
+    maxAge: 60000 
+  } 
+}))
 app.use(bodyParser.json())
 app.use(passport.initialize())
 app.use(passport.session())
 
 passport.serializeUser(function(user, done) {
-  console.log("SERIALIZE", user)
-  done(null, user)
+  console.log("SERIALIZE", user._id)
+  return done(null, user._id)
 })
 
-passport.deserializeUser(function(user, done) {
-  console.log("DE-SERIALIZE", user)
-  done(null, user)
+passport.deserializeUser(async (id, done) => {
+  console.log("DE-SERIALIZE", id)
+  const user = await api.findUser({_id: id})
+  return done(null, user.email)
 })
 
-app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*")
-  res.header("Access-Control-Allow-Credentials", true)
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
-  res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE")
-  res.header("Cache-Control", "'max-age=0'")
-  next()
-})
+app.use(cors())
+
+/* app.use(function(req, res, next) { */
+/*   res.header("Access-Control-Allow-Origin", "*") */
+/*   res.header("Access-Control-Allow-Credentials", true) */
+/*   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization", "Cookie") */
+/*   res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE") */
+/*   res.header("Cache-Control", "'max-age=0'") */
+/*   res.header('set-cookie', 'foobar') */
+/*   next() */
+/* }) */
 
 /**
  * ROUTES

@@ -1,4 +1,4 @@
-service: parcelize-csv
+service: parcelize
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -16,36 +16,22 @@ provider:
         - s3:*
 
 functions:
-  train:
-    handler: src/train.handler
-
+  authorize:
+    handler: src/authorize.handler
+  
   listen: 
     handler: src/app.handler
     events:
       - http:
           path: /
           method: ANY
-          cors:
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-            allowCredentials: true
+          authorizer: authorize
+          cors: true
       - http:
           path: /{proxy+}
           method: ANY
-          cors:
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-            allowCredentials: true
+          authorizer: authorize
+          cors: true
     environment:
       ENV: aws
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
