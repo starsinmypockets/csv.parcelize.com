@@ -8,29 +8,27 @@ import SignupForm from './SignupForm'
 import TrainModelForm from './TrainModelForm'
 import UploadForm from './UploadForm'
 import PasswordForm from './PasswordForm'
-import {getToken} from './utils'
+import { getURLToken, getAuthHeader } from './utils'
 import filesaver from 'file-saver'
 
-const baseUrl = "https://4tflbbrqj2.execute-api.us-east-1.amazonaws.com/dev"
+const baseUrl = "https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev"
 
 class App extends Component {
   constructor(props, context) {
     super(props)
-    const token = getToken()
+    const token = getURLToken()
+    const loggedIn = sessionStorage.getItem('jwtToken')
+    const initialRoute = (loggedIn) ? 'has-account' : 'home'
     this.state = {
       token: token,
-      route: "home",
-      loaded: true
+      route: initialRoute,
+      loaded: true,
+      loggedIn: loggedIn
     }
     
     if (token) {
       this.verifyTokenAction()
     }
-  }
-
-  componentWillMount() {
-    this.loginAction()
-
   }
 
   componentDidUpdate() {
@@ -40,6 +38,14 @@ class App extends Component {
         this.getBucketInfoAction()
       }, 1200)
     }
+  }
+
+  doLogout() {
+    sessionStorage.removeItem('jwtToken')
+    this.setState({
+      loggedIn: false,
+      route: 'home'
+    })
   }
   
   async callApi() {
@@ -76,7 +82,7 @@ class App extends Component {
       body: JSON.stringify(opts),
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Authorization": "Bearer " + getToken(),
+        "Authorization": "Bearer " + getURLToken(),
       },
     })
 
@@ -88,42 +94,51 @@ class App extends Component {
   }
   
   async loginAction(opts) {
-    console.log("LoginAction - app", opts)
-    const _opts = {
-      username: 'starsinmypockets@gmail.com', //opts.email,
-      password: '23skidoo' //opts.password
+    try {
+      console.log("LoginAction - app", opts)
+      const body = {
+        username: opts.email,
+        password: opts.password
+      }
+      const res = await fetch(baseUrl+'/login', {
+        method: "POST", 
+        body: JSON.stringify(body),
+        mode: 'cors',
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      })
+
+      const data = await res.json()
+      console.log('jwt token', data.token)
+
+      if (res.status > 299) {
+        this.setState({route: 'login-fail'})
+      }
+
+      if (!res.ok) {
+        this.setState({route: "bad-submit"})
+      } else {
+          sessionStorage.setItem('jwtToken', data.token)
+        this.setState({
+          route: "has-account",
+          loggedIn: true
+        })
+      } 
+    } catch (e) {
+      this.setState({route: 'has-error', error: e})
     }
-    const res = await fetch(baseUrl+'/login', {
-      method: "POST", 
-      body: JSON.stringify(_opts),
-      mode: 'cors',
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-      },
-    })
-
-    console.log("LOGIN RES",res.status, document.cookie)
-
-    if (res.status > 299) {
-      this.setState({route: 'login-fail'})
-    }
-
-    if (!res.ok) {
-      this.setState({route: "bad-submit"})
-    } else {
-      this.setState({route: "has-account"})
-    } 
   }
 
   async verifyTokenAction() {
-    const body = JSON.stringify({token: getToken()})
+    const body = JSON.stringify({token: getURLToken()})
     console.log('body', body)
     const res = await fetch(baseUrl+'/verify-user', {
       method: "POST", 
       body: body,
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Authorization": "Bearer " + getToken(),
+        "Authorization": "Bearer " + getURLToken(),
       },
     })
 
@@ -141,14 +156,16 @@ class App extends Component {
   async submitModelTrainFormAction(values) {
     try {
       console.log("SUBMIT TRAINING FORM", this, values)
+      const reqBody = JSON.stringify(values)
+      reqBody.name = values.modelName
       
       this.setState({loaded: false})
       const res = await fetch(baseUrl+'/train', {
         method: "POST", 
-        body: JSON.stringify(values),
+        body: reqBody,
         headers: {
           "Content-Type": "application/json; charset=utf-8",
-          "Authorization": "Bearer " + getToken(),
+          "Authorization": sessionStorage.getItem('jwtToken'),
         },
       })
 
@@ -184,7 +201,7 @@ class App extends Component {
         method: "GET", 
         headers: {
           "Content-Type": "application/json; charset=utf-8",
-          "Authorization": "Bearer " + getToken(),
+          "Authorization": sessionStorage.getItem('jwtToken'),
         },
       })
 
@@ -230,7 +247,7 @@ class App extends Component {
         responseType: 'application/octet-stream',
         headers: {
           "Content-Type": "application/json; charset=utf-8",
-          "Authorization": "Bearer " + getToken(),
+          "Authorization": sessionStorage.getItem('jwtToken')
         },
       })
 
@@ -281,7 +298,7 @@ class App extends Component {
         responseType: 'application/octet-stream',
         headers: {
           "Content-Type": "application/json; charset=utf-8",
-          "Authorization": "Bearer " + getToken(),
+          "Authorization": sessionStorage.getItem('jwtToken')
         },
       })
 
@@ -453,11 +470,9 @@ class App extends Component {
           <Col xs={0} md={9} />
           <Col xs={12} md={3}>
             <div class="account">
-              <a>Account</a>
+              <a href="parcelize.com">Info</a>
               <span> |  </span>
-              <a>Models</a>
-              <span> |  </span>
-              <a>Logout</a>
+              <a href="#" onClick={this.doLogout.bind(this)}>Logout</a>
             </div>
           </Col>
         </Row>
@@ -469,8 +484,6 @@ class App extends Component {
               <a href="#" onClick={(e => {e.preventDefault(); this.setState({route: 'login'})})}>Login</a>
               <span> |  </span>
               <a href="#" onClick={(e => {e.preventDefault(); this.setState({route: 'signup'})})}>Signup</a>
-              <span> |  </span>
-              <a>Models</a>
             </div>
           </Col>
         </Row>

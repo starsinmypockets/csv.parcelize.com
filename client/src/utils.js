@@ -14,10 +14,10 @@ function getUrlParam(parameter, defaultvalue) {
     return urlparameter;
 }
 
-function getToken() {
+function getURLToken() {
   return getUrlParam('token', false)
 }
 
 export {
-  getToken
+  getURLToken
 }
