@@ -3,7 +3,7 @@ const api = require('./api')
 const JWT_EXPIRATION_TIME = 3600
 console.log("fpp")
 module.exports.handler = async (event, context) => {
-  console.log("EVENT",event)
+  console.log("EVENT",event, context)
     const {username, password} = JSON.parse(event.body)
   
   try {
@@ -24,6 +24,9 @@ module.exports.handler = async (event, context) => {
 
     return Promise.resolve({ 
       statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
       body: JSON.stringify({auth: true, token: token})
     })
   } catch (e) {

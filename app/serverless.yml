@@ -54,6 +54,8 @@ functions:
     environment:
       ENV: aws
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
+      SLS_DEBUG: "*"
+      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
     iamRoleStatements:
       - Effect: Allow
         Resource: "*"

@@ -15,6 +15,12 @@ app.get('/', (req, res) => {
   res.send('hello')
 })
 
+app.use((req, res, next) => {
+  const tok= jwt.verify(req.headers.authorization, process.env.JWT_SECRET)
+  req.user = tok.user
+  next()
+})
+
 app.get('/test', (req, res) => {
   res.json({
     apiVersion: "0.0.9",
@@ -155,8 +161,9 @@ app.get('/training-data', async (req, res) => {
         'Content-Type': 'application/json',
       }
     }
-
+    
     const body = {user: req.user}
+    console.log('td req', opts, body)
     
     const _req = http.request(opts, _res => {
       let data = ''
@@ -174,7 +181,8 @@ app.get('/training-data', async (req, res) => {
       })
     })
     
-    _req.end(JSON.stringify(body))
+    _req.write(JSON.stringify(body))
+    _req.end()
   } catch (e) {
     console.log('TRAINING-DATA', e)
     res.send({bucketInfo: false})
@@ -258,8 +266,8 @@ async function postToS3(bx, req, res) {
   try {
 		const crypto = require('crypto')
     const AWS = require('aws-sdk')  
-		const user = req.user || req.body.user || req.body.email
-		const hash = crypto.createHash('md5').update(user).digest("hex")
+		const username = req.user.username
+		const hash = crypto.createHash('md5').update(username).digest("hex")
 
     const s3 = new AWS.S3({
       apiVersion: '2006-03-01',
