@@ -156,13 +156,13 @@ class App extends Component {
   async submitModelTrainFormAction(values) {
     try {
       console.log("SUBMIT TRAINING FORM", this, values)
-      const reqBody = JSON.stringify(values)
+      const reqBody = values
       reqBody.name = values.modelName
       
       this.setState({loaded: false})
       const res = await fetch(baseUrl+'/train', {
         method: "POST", 
-        body: reqBody,
+        body: JSON.stringify(reqBody),
         headers: {
           "Content-Type": "application/json; charset=utf-8",
           "Authorization": sessionStorage.getItem('jwtToken'),
@@ -381,9 +381,7 @@ class App extends Component {
         )
         break
       case "has-error":
-        return <div id="app-error">
-          <p>{JSON.stringify(this.state.error)}</p>
-        </div>
+        console.log('HAS-ERROR', this.state)
         break
       default:
         return ""

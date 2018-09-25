@@ -28,6 +28,7 @@ function buildIAMPolicy (userId, effect, resource, context) {
 
 module.exports.handler = (event, context, callback) => {
   console.log('event', event)
+  console.log('context', context)
   const token = event.authorizationToken
 
   try {

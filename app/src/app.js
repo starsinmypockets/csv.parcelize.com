@@ -100,6 +100,7 @@ app.post('/register-user', async (req, res) => {
 
 app.post('/train', async (req, res) => {
   // seperate fields from indexes
+  console.log("TRAIN REQ 1 ", req)
   try {
     const fieldNames = ["bucketName", "bucketUrl"]
     const _bx = api.formatReqFields(req.body, fieldNames)
@@ -147,45 +148,6 @@ app.post('/train', async (req, res) => {
   } catch (e) {
     console.log("CLASSIFY REQ ERROR", e)
     res.send(e)
-  }
-})
-
-app.get('/training-data', async (req, res) => {
-  try {
-    const opts = {
-      hostname: 'engine.parcelize.com',
-      port: 80,
-      path: '/training-data',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    }
-    
-    const body = {user: req.user}
-    console.log('td req', opts, body)
-    
-    const _req = http.request(opts, _res => {
-      let data = ''
-      _res.setEncoding('utf8')
-      _res.on('data', chunk => {
-        data += chunk
-      })
-      _res.on('end', () => {
-        res.setHeader('content-type', 'application/json')
-        res.send(JSON.parse(data))
-      })
-      _res.on('error', err => {
-        console.log("ERR", err)
-        res.send({err: err})
-      })
-    })
-    
-    _req.write(JSON.stringify(body))
-    _req.end()
-  } catch (e) {
-    console.log('TRAINING-DATA', e)
-    res.send({bucketInfo: false})
   }
 })
 

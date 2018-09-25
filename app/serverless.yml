@@ -34,6 +34,18 @@ functions:
       SLS_DEBUG: "*"
       JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
 
+  trainingData:
+    handler: src/trainingData.handler
+    events:
+      - http:
+          path: /training-data
+          method: post
+          authorizer: authorize
+          cors: true
+    environment:
+      SLS_DEBUG: "*"
+      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+
   listen: 
     handler: src/app.handler
     events:
@@ -49,7 +61,6 @@ functions:
       - http:
           path: /{proxy+}
           method: ANY
-          authorizer: authorize
           cors: true
     environment:
       ENV: aws

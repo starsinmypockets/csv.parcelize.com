@@ -25,6 +25,7 @@
     "passport-http-bearer": "^1.0.1",
     "passport-local": "^1.0.0",
     "request": "^2.88.0",
+    "request-promise-native": "^1.0.5",
     "serverless-http": "^1.6.0"
   },
   "scripts": {

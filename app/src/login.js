@@ -1,34 +1,38 @@
 const jwt = require('jsonwebtoken')
 const api = require('./api')
-const JWT_EXPIRATION_TIME = 3600
+const JWT_EXPIRATION_TIME = "2d"
 console.log("fpp")
 module.exports.handler = async (event, context) => {
   console.log("EVENT",event, context)
     const {username, password} = JSON.parse(event.body)
+    console.log(username, password)
   
   try {
-    const _user = await api.verifyPasswordAuth({
+    const user = await api.verifyPasswordAuth({
       email: username,
       password: password
     })
 
-    const user = {
-      username: _user.email,
-      appUses: _user.appUses,
-      id: _user._id
+    if (user) {
+      const sessUser = { user: {
+         username: user.email,
+         id: user._id
+        }
+      }
+      
+      const token = await jwt.sign(sessUser, process.env.JWT_SECRET, { expiresIn: 60 * 60 * 48 })
+
+      return Promise.resolve({ 
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+        body: JSON.stringify({auth: true, token: token})
+      })
+      
+    } else {
+      return Promise.reject({auth: false})
     }
-
-    const token = await jwt.sign({ user }, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRATION_TIME })
-
-    console.log("tok", jwt)
-
-    return Promise.resolve({ 
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({auth: true, token: token})
-    })
   } catch (e) {
     console.log("LOGIN ERR", e)
     return Promise.reject({ // Error response
