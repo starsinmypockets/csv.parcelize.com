@@ -8,9 +8,7 @@ const api = module.exports = {
   createUser: async (opts) => {
     try {
       const user = new User(opts)
-      user.bearerToken = api.generateToken()
-      await user.save()
-      return user
+      return user.save()
     } catch (e) {
       log(e)
       return false
@@ -19,7 +17,7 @@ const api = module.exports = {
 
   updateUser: async (opts) => {
     try {
-      const user = await api.findUserByEmail(opts.email)
+      const user = await api.findUserByEmail(opts.username)
 
       if (opts.password)  {
         const bcrypt = require('bcryptjs')
@@ -74,8 +72,8 @@ const api = module.exports = {
     return User.findOne({bearerToken: tok})
   },
   
-  findUserByEmail: (email) => {
-    return User.findOne({email: email})
+  findUserByUsername: (username) => {
+    return User.findOne({username})
   },
 
   findUser: (opts) => {
@@ -96,7 +94,6 @@ const api = module.exports = {
       const aws = require('aws-sdk')
       aws.config.update({region: 'us-east-1'})
       const ses = new aws.SES()
-      const bearerToken = opts.user.bearerToken
 
       const mailOptions = {
         Source: opts.from,
@@ -109,7 +106,7 @@ const api = module.exports = {
           Body: {
             Text: {
               Charset: 'UTF-8',
-              Data: `Thanks for trying out our services. Your login link is: http://csv.parcelize.com/${bearerToken}. Hold onto the link - this link will act as your password. We're just getting started but hope that we can be of help to your organization. If you encounter any problems, have any requests or suggestions, or just want to get in touch, please reach out at parcelize@gmail.com.`
+              Data: opts.text
             }
           }
         }

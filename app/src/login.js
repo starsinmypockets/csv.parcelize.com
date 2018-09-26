@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 const api = require('./api')
-const JWT_EXPIRATION_TIME = "2d"
-console.log("fpp")
+const JWT_EXPIRATION_TIME = 60 * 60 * 48
+
 module.exports.handler = async (event, context) => {
   console.log("EVENT",event, context)
     const {username, password} = JSON.parse(event.body)
@@ -9,7 +9,7 @@ module.exports.handler = async (event, context) => {
   
   try {
     const user = await api.verifyPasswordAuth({
-      email: username,
+      username: username,
       password: password
     })
 
@@ -20,7 +20,7 @@ module.exports.handler = async (event, context) => {
         }
       }
       
-      const token = await jwt.sign(sessUser, process.env.JWT_SECRET, { expiresIn: 60 * 60 * 48 })
+      const token = await jwt.sign(sessUser, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRATION_TIME})
 
       return Promise.resolve({ 
         statusCode: 200,

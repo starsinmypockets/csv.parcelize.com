@@ -10,7 +10,7 @@ try {
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: {
+  username: {
     type: String, required: true, index: true, unique: true,
   },
   bearerToken: { type: String, unique: true },

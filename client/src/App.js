@@ -59,6 +59,7 @@ class App extends Component {
 
   async signupAction(opts) {
     console.log("Signup Action - app", opts)
+    opts.username = opts.email
     const res = await fetch(baseUrl+'/create-user', {
       method: "POST", 
       body: JSON.stringify(opts),
@@ -78,12 +79,12 @@ class App extends Component {
   
   async passwordAction(opts) {
     console.log("Register Action - app", opts)
-    const res = await fetch(baseUrl+'/register-user', {
+    const res = await fetch(baseUrl+'/authenticate-user', {
       method: "POST", 
       body: JSON.stringify(opts),
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Authorization": "Bearer " + getURLToken(),
+        "Authorization": getURLToken(),
       },
     })
 
@@ -134,23 +135,23 @@ class App extends Component {
   async verifyTokenAction() {
     const body = JSON.stringify({token: getURLToken()})
     console.log('body', body)
+    sessionStorage.setItem('jwtToken', getURLToken())
     const res = await fetch(baseUrl+'/verify-user', {
-      method: "POST", 
-      body: body,
+      method: "GET", 
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Authorization": "Bearer " + getURLToken(),
+        "Authorization": sessionStorage.getItem('jwtToken'),
       },
     })
 
     if (res.status !== 200) {
       this.setState({route: ""})
     } else { 
-      const body = await res.json()
-      
-      body.route = "has-token"
-      console.log(body)
-      this.setState(body)
+      window.history.replaceState({}, document.title, "/")
+      this.setState({
+        route: 'has-token',
+        loggedIn: true
+      })
     }
   }
   

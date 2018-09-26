@@ -21,6 +21,44 @@ functions:
     environment:
       JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
   
+  createUser:
+    handler: src/createUser.handler
+    events:
+        - http:
+            path: /create-user
+            method: post
+            cors: true
+    environment:
+      PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
+      SLS_DEBUG: "*"
+      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+
+  verifyUser:
+    handler: src/verifyUser.handler
+    events:
+        - http:
+            path: /verify-user
+            method: get
+            authorizer: authorize
+            cors: true
+    environment:
+      PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
+      SLS_DEBUG: "*"
+      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+  
+  authenticateUser:
+    handler: src/authenticateUser.handler
+    events:
+        - http:
+            path: /authenticate-user
+            method: post
+            authorizer: authorize
+            cors: true
+    environment:
+      PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
+      SLS_DEBUG: "*"
+      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+
   login:
     handler: src/login.handler
     events:
@@ -29,7 +67,6 @@ functions:
             method: post
             cors: true
     environment:
-      ENV: aws
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
       SLS_DEBUG: "*"
       JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
