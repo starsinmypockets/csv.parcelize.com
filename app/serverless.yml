@@ -59,6 +59,33 @@ functions:
       SLS_DEBUG: "*"
       JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
 
+  classify:
+     handler: src/classify.handler
+     events:
+       - http:
+          path: /classify
+          method: post
+          authorizer: authorize
+          cors: true
+     environment:
+       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
+       SLS_DEBUG: "*"
+       JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+  
+  downloadBucket:
+     handler: src/downloadBucket.handler
+     events:
+       - http:
+          path: /download-bucket
+          method: post
+          authorizer: authorize
+          cors: true
+     environment:
+       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
+       SLS_DEBUG: "*"
+       JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+
+
 package:
   include:
     - src/**
