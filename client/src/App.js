@@ -11,7 +11,8 @@ import PasswordForm from './PasswordForm'
 import { getURLToken, getAuthHeader } from './utils'
 import filesaver from 'file-saver'
 
-const baseUrl = "https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev"
+// const baseUrl = "https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev"
+const baseUrl = "http://localhost:4000"
 
 class App extends Component {
   constructor(props, context) {
@@ -292,7 +293,7 @@ class App extends Component {
 
   async downloadBucket (opts) {
     try {
-      const res = await fetch(baseUrl+'/dl-bucket', {
+      const res = await fetch(baseUrl+'/download-bucket', {
         method: "POST", 
         body: JSON.stringify(opts),
         responseType: 'application/octet-stream',
