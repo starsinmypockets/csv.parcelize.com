@@ -1,41 +1,23 @@
 const rp = require('request-promise-native')
-const api = require('./api')
-
-/* const jwt = require('jsonwebtoken') */
-/* const get = pr(http.get) */
+const jwt = require('jsonwebtoken')
+const secret = process.env.JWT_SECRET
 
 module.exports.handler = async (event) => {
   try {
-    const eventBody = event.body
-    const fieldNames = ["bucketName", "bucketUrl"]
-    const _bx = api.formatReqFields(eventBody, fieldNames)
-    const reqBody = {}
+    const tok = event.headers.Authorization
+    const session = jwt.verify(tok, secret)
+    const reqBody = { session: session }
+    console.log('TRAINING DATA', tok, session, reqBody)
     
-    // tweak keys:
-    const bx = _bx.map(row => {
-      return {
-        bucketName: row.bucketName,
-        url: row.bucketUrl
-      }
-    })
-    
-    reqBody.bx = bx
-    reqBody.user = eventBody.user
-    reqBody.dataFields = eventBody.dataFields
-
     const opts = {
-      uri: 'http://engine.parcelize.com/train',
+      url: 'http://engine.parcelize.com/training-data',
       port: 80,
       method: 'POST',
-      body: reqBody,
       json: true,
-      headers: {
-        'Content-type': 'application/json',
-        'Access-control-allow-origins': '*'
-      }
+      body: reqBody,
     }
 
-    const res = await  rp(opts).json()
+    const res = await  rp(opts)
     
     return Promise.resolve({
       statusCode: 200,

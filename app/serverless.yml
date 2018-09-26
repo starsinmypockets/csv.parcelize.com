@@ -51,7 +51,8 @@ functions:
     events:
       - http:
           path: /training-data
-          method: post
+          method: get
+          authorizer: authorize
           cors: true
     environment:
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
