@@ -38,6 +38,7 @@
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-config-recommended": "^3.0.0",
     "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-mocha": "^5.2.0"
+    "eslint-plugin-mocha": "^5.2.0",
+    "serverless-offline": "^3.25.14"
   }
 }

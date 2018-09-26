@@ -34,49 +34,37 @@ functions:
       SLS_DEBUG: "*"
       JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
 
+  train:
+    handler: src/train.handler
+    events:
+      - http:
+          path: /train
+          method: post
+          authorizer: authorize
+          cors: true
+    environment:
+      PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
+      SLS_DEBUG: "*"
+  
   trainingData:
     handler: src/trainingData.handler
     events:
       - http:
           path: /training-data
           method: post
-          authorizer: authorize
           cors: true
     environment:
-      SLS_DEBUG: "*"
-      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
-
-  listen: 
-    handler: src/app.handler
-    events:
-      - http:
-          path: /test
-          method: ANY
-          cors: true
-      - http:
-          path: /
-          method: ANY
-          authorizer: authorize
-          cors: true
-      - http:
-          path: /{proxy+}
-          method: ANY
-          cors: true
-    environment:
-      ENV: aws
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
       SLS_DEBUG: "*"
       JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
-    iamRoleStatements:
-      - Effect: Allow
-        Resource: "*"
-        Action:
-          - ses:SendEmail
-          - ses:SendRawEmail
-          - logs:CreateLogGroup
-          - logs:CreateLogStream
-          - logs:PutLogEvents
-          - logs:DescribeLogStreams
+
 package:
   include:
     - src/**
+
+plugins:
+  - serverless-offline
+
+custom:
+    serverless-offline:
+        port: 4000
