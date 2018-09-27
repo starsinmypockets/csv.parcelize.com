@@ -73,6 +73,7 @@ functions:
 
   train:
     handler: src/train.handler
+    timeout: 30
     events:
       - http:
           path: /train
@@ -82,22 +83,10 @@ functions:
     environment:
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
       SLS_DEBUG: "*"
-  
-  trainingData:
-    handler: src/trainingData.handler
-    events:
-      - http:
-          path: /training-data
-          method: get
-          authorizer: authorize
-          cors: true
-    environment:
-      PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
-      SLS_DEBUG: "*"
-      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
 
   classify:
      handler: src/classify.handler
+     timeout: 30
      events:
        - http:
           path: /classify

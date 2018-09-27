@@ -1,29 +1,31 @@
-const rp = require('request-promise-native')
 const api = require('./api')
 const jwt = require('jsonwebtoken')
 const secret = process.env.JWT_SECRET
 
 module.exports.handler = async (event) => {
   try {
-    console.log("eb-0000", JSON.parse(event.body))
     const eventBody = JSON.parse(event.body)
-    const reqBody = {}
     const tok = event.headers.Authorization
     const session = jwt.verify(tok, secret)
+    const user = session.user
     
-    reqBody.url= eventBody.url
-    reqBody.session = session
+    const url = api.formatGoogleDocsLink(eventBody.url)
+    const dataFields = eventBody.datafields || ['description'] // @@TODO take this out 
+    const csvData = await api.getCSVData([{bucketName: "rows", url: url}])
 
-    const opts = {
-      url: 'http://engine.parcelize.com/classify',
-      port: 80,
-      method: 'POST',
-      json: true,
-      body: reqBody
-    }
-
-    const data = await rp(opts)
-    const s3res = await postToS3(data, session.user.username)
+    const bx = await api.classifyData({
+      username: user.username,
+      data: csvData[0].rows,
+      dataFields: dataFields
+    })
+    
+    await api.saveData({
+      data: bx, 
+      type: 'bucketData', 
+      username: user.username
+    })
+    
+    const s3res = await postToS3(bx, session.user.username)
     
     return Promise.resolve({
       statusCode: 200,

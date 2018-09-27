@@ -1,4 +1,3 @@
-const rp = require('request-promise-native')
 const api = require('./api')
 const jwt = require('jsonwebtoken')
 const secret = process.env.JWT_SECRET
@@ -9,9 +8,9 @@ module.exports.handler = async (event) => {
     const eventBody = JSON.parse(event.body)
     const fieldNames = ["bucketName", "bucketUrl"]
     const _bx = api.formatReqFields(eventBody, fieldNames)
-    const reqBody = {}
     const tok = event.headers.Authorization
     const session = jwt.verify(tok, secret)
+    const user = session.user
     
     // tweak keys:
     const bx = _bx.map(row => {
@@ -21,27 +20,23 @@ module.exports.handler = async (event) => {
       }
     })
     
-    reqBody.bx = bx
-    reqBody.session = session
-    reqBody.dataFields = eventBody.dataFields
-
-    console.log("BODY", reqBody)
+    const trainingData = await api.getCSVData(bx)
 
     const opts = {
-      url: 'http://engine.parcelize.com/train',
-      port: 80,
-      method: 'POST',
-      json: true,
-      body: reqBody
+      trainingData: trainingData,
+      dataFields: eventBody.dataFields
     }
 
-    console.log(opts)
-
-    const res = await rp(opts)
+    const bayes = await api.trainBucketizer(opts)
+    
+    await api.saveBayesModel({bayesModel: bayes, username: user.username})
+    await api.saveData({data: trainingData, type: trainingData, username: user.username})
+    
+    const bucketInfo = await api.getBucketInfo(bayes)
     
     return Promise.resolve({
       statusCode: 200,
-      body: JSON.stringify(res),
+      body: JSON.stringify(bucketInfo),
       headers: {
         'Content-type': 'application/json',
         'Access-control-allow-origin': '*'

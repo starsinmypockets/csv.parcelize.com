@@ -17,12 +17,14 @@ const csv2json = require('csvtojson')
   *   }
   **/
 async function getCSVData(opts) {
+  console.log("OPTS", opts)
   const inner = 
       opts.map(cat => {
         return new Promise((resolve, reject) => {
           const url = cat.url
+          console.log('UUUU', url)
           const csv = csv2json()
-          const req = request({url: url})
+          const req = request({url: url, uri: url})
           const csvData = req.pipe(csv).setEncoding('utf8')
           const csvRows = []
           const maxLength = cat.maxLength || 10000 //10K

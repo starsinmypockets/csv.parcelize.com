@@ -23,14 +23,14 @@ const userSchema = new mongoose.Schema({
 
 
 const bayesModel = new mongoose.Schema({
-  user: { type: String, required: true },
+  username: { type: String, required: true },
   created: { type: Date, default: Date.now },
   updated: { type: Date, default: Date.now },
   bayesModel: { type: Object, required: true }, // JSON
 })
 
 const dataModel = new mongoose.Schema({
-  user: { type: String, required: true },
+  username: { type: String, required: true },
   created: { type: Date, default: Date.now },
   updated: { type: Date, default: Date.now },
   dataType: { type: String, enum: ['trainingData', 'bucketData']},

@@ -51,12 +51,9 @@ const api = module.exports = {
   // returns user
   verifyPasswordAuth: async (opts) => {
     try {
-      console.log('PW Auth api', opts)
       const bcrypt = require('bcryptjs')
       const user = await api.findUserByEmail(opts.email)
-      console.log("PW Auth api USER", user)
       const isMatch = await bcrypt.compare(opts.password, user.password)
-      console.log("PW Auth api isMatch", isMatch)
       return (isMatch) ? user : false
     } catch (e) {
       log("VERIFY PW AUTH", e)
@@ -83,9 +80,10 @@ const api = module.exports = {
   getUserByEmail: this.findUserByEmail,
 
   getUserByToken: this.findUserByToken,
-
-  getBayes: (email) => {
-    return Bayes.findOne({user: email})
+  
+  // return latest
+  getBayes: async (username) => {
+    return Bayes.findOne({username}, {}, {sort: {'created_at': -1}})
   },
 
   sendAuthEmail: async (opts) => {
@@ -111,13 +109,11 @@ const api = module.exports = {
           }
         }
       }
-      console.log("ses opts", mailOptions)
 
       const data = await ses.sendEmail(mailOptions).promise()
-      console.log("ses res", data)
       return data
     } catch (e) {
-      console.log(e)
+      console.log('SEND AUTH EMAIL', e)
       return Promise.reject(e)
     }
   },
@@ -176,19 +172,21 @@ const api = module.exports = {
       return {err: 'fail'}
     }
   },
-
+  
   classifyData: async (opts) => {
-    const data = await api.getCSVData([{bucketName: "rows", url: opts.url}])
     const b8r = new Bucketizer
-    const bayes= await api.getBayes(opts.email)
+    const bayes = await api.getBayes(opts.username)
     bayes.model.options = bayes.model.options || {}
 
     await b8r.init({
-      classifierModel: bayes.model,
-      data: data[0].rows
+      classifierModel: bayes.bayesModel,
+      data: opts.data,
+      dataFields: opts.dataFields
     })
 
     await b8r.doBayes()
+
+    return b8r.buckets
     // send CSVs
   },
 
@@ -222,6 +220,17 @@ const api = module.exports = {
       log("SAVE MODEL", e)
     }
   },
+  
+  saveData: async (opts) => {
+    try {
+      const data = new Data(opts)
+      const saved = await data.save()
+      return saved
+    } catch (e) {
+      console.log('SAVE DATA', e)
+      return Promise.reject(e)
+    }
+  },
 
   json2csv: (json) => {
     const Json2csvParser = require('json2csv').Parser
@@ -236,7 +245,6 @@ const api = module.exports = {
   },
 
   getData: (opts) => {
-    console.log('GET DATA', opts)
     return Data.findOne(opts)
   }
 }
