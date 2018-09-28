@@ -10,10 +10,16 @@ module.exports.handler = async (event) => {
     if (user) {
     return Promise.resolve({
         statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
         body: JSON.stringify(user)
       })
     } else {
       return Promise.resolve({
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
         statusCode: 401,
       })
     }
@@ -21,6 +27,9 @@ module.exports.handler = async (event) => {
     console.log("VERIFY USER", e)
     return Promise.resolve({
       statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
       body: JSON.stringify(e)
     })
   }

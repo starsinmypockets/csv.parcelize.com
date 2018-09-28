@@ -23,12 +23,18 @@ module.exports.handler = async (event) => {
     await api.sendAuthEmail(emailOpts)
     return Promise.resolve({
       statusCode: 200,
+      headers: {
+        "Access-control-allow-origin": "*"
+      },
       body: JSON.stringify(user)
     })
   } catch (e) {
     console.log("CLASSIFY REQ ERROR", e)
     return Promise.resolve({
       statusCode: 500,
+      headers: {
+        "Access-control-allow-origin": "*"
+      },
       body: JSON.stringify(e)
     })
   }

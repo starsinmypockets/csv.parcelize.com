@@ -2,8 +2,7 @@ const jwt = require('jsonwebtoken')
 const api = require('./api')
 const JWT_EXPIRATION_TIME = 60 * 60 * 48
 
-module.exports.handler = async (event, context) => {
-  console.log("EVENT",event, context)
+module.exports.handler = async (event) => {
     const {username, password} = JSON.parse(event.body)
     console.log(username, password)
   
@@ -15,7 +14,7 @@ module.exports.handler = async (event, context) => {
 
     if (user) {
       const sessUser = { user: {
-         username: user.email,
+         username: username,
          id: user._id
         }
       }
@@ -31,13 +30,17 @@ module.exports.handler = async (event, context) => {
       })
       
     } else {
-      return Promise.reject({auth: false})
+      return Promise.resolve({
+        statusCode: 403,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+      })
     }
   } catch (e) {
     console.log("LOGIN ERR", e)
-    return Promise.reject({ // Error response
-      auth: false,
-      body: e
+    return Promise.resolve({ // Error response
+      statusCode: 500
     })
   }
 }

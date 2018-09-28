@@ -52,7 +52,7 @@ const api = module.exports = {
   verifyPasswordAuth: async (opts) => {
     try {
       const bcrypt = require('bcryptjs')
-      const user = await api.findUserByEmail(opts.email)
+      const user = await api.findUserByEmail(opts.username)
       const isMatch = await bcrypt.compare(opts.password, user.password)
       return (isMatch) ? user : false
     } catch (e) {
@@ -70,6 +70,10 @@ const api = module.exports = {
   },
   
   findUserByUsername: (username) => {
+    return User.findOne({username})
+  },
+
+  findUserByEmail: (username) => {
     return User.findOne({username})
   },
 
@@ -208,7 +212,7 @@ const api = module.exports = {
 
   formatGoogleDocsLink: (str) => {
     const id = str.replace(/http(.){0,1}:\/\//,'').split('/')[3]
-    return `https://docs.google.com/spreadsheets/d/${id}/export/format=csv`
+    return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv`
   },
 
   saveBayesModel: async  (opts) => {

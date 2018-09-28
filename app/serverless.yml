@@ -52,6 +52,7 @@ functions:
         - http:
             path: /authenticate-user
             method: post
+            integration: lambda-proxy
             authorizer: authorize
             cors: true
     environment:
@@ -59,6 +60,7 @@ functions:
       SLS_DEBUG: "*"
       JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
 
+  
   login:
     handler: src/login.handler
     events:
@@ -82,6 +84,7 @@ functions:
           cors: true
     environment:
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
+      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
       SLS_DEBUG: "*"
 
   classify:

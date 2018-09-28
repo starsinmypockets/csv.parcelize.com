@@ -12,7 +12,7 @@ import { getURLToken, getAuthHeader } from './utils'
 import filesaver from 'file-saver'
 
 // const baseUrl = "https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev"
-const baseUrl = "http://localhost:4000"
+const baseUrl = "https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev"
 
 class App extends Component {
   constructor(props, context) {
@@ -28,16 +28,8 @@ class App extends Component {
     }
     
     if (token) {
+      console.log('tok'), token
       this.verifyTokenAction()
-    }
-  }
-
-  componentDidUpdate() {
-    // handle polling for resources
-    if (this.state.route === 'model-submit' && this.state.polling && this.state.polling > 0) {
-      setTimeout(() => {
-        this.getBucketInfoAction()
-      }, 1200)
     }
   }
 
@@ -59,40 +51,54 @@ class App extends Component {
 
   async signupAction(opts) {
     console.log("Signup Action - app", opts)
-    opts.username = opts.email
-    const res = await fetch(baseUrl+'/create-user', {
-      method: "POST", 
-      body: JSON.stringify(opts),
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-      },
-    })
+    try {
+      opts.username = opts.email
+      const res = await fetch(baseUrl+'/create-user', {
+        method: "POST", 
+        body: JSON.stringify(opts),
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+        },
+      })
 
-    const body = await res.json()
-    console.log("res", body)
-    if (!body) {
-      this.setState({route: "bad-submit"})
-    } else {
-      this.setState({route: "submit-sent"})
-    } 
+      const body = await res.json()
+      console.log("res", body)
+      if (!res.ok) {
+        this.setState({route: "bad-submit"})
+      } else {
+        this.setState({route: "submit-sent"})
+      } 
+    } catch (e) {
+      console.log(e)
+      this.setState({route: "has-error", "error": e})
+    }
   }
   
   async passwordAction(opts) {
-    console.log("Register Action - app", opts)
-    const res = await fetch(baseUrl+'/authenticate-user', {
-      method: "POST", 
-      body: JSON.stringify(opts),
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Authorization": getURLToken(),
-      },
-    })
+    try {
+      console.log("Register Action - app", opts)
+      console.log(sessionStorage.getItem('jwtToken'))
+      const res = await fetch(baseUrl+'/authenticate-user', {
+        method: "POST", 
+        body: JSON.stringify({password: opts.password}),
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Authorization": sessionStorage.getItem('jwtToken'),
+        },
+      })
 
-    if (!res.ok) {
+      if (!res.ok) {
+        this.setState({route: "bad-submit"})
+      } else {
+        this.setState({
+          route: "has-account",
+          loggedIn: "true"
+        })
+      }
+    } catch (e) {
+      console.log(e)
       this.setState({route: "bad-submit"})
-    } else {
-      this.setState({route: "has-account"})
-    } 
+    }
   }
   
   async loginAction(opts) {
@@ -114,12 +120,8 @@ class App extends Component {
       const data = await res.json()
       console.log('jwt token', data.token)
 
-      if (res.status > 299) {
-        this.setState({route: 'login-fail'})
-      }
-
       if (!res.ok) {
-        this.setState({route: "bad-submit"})
+        this.setState({route: "login-fail"})
       } else {
           sessionStorage.setItem('jwtToken', data.token)
         this.setState({
@@ -128,30 +130,34 @@ class App extends Component {
         })
       } 
     } catch (e) {
-      this.setState({route: 'has-error', error: e})
+      this.setState({route: "login-fail"})
     }
   }
 
   async verifyTokenAction() {
-    const body = JSON.stringify({token: getURLToken()})
-    console.log('body', body)
-    sessionStorage.setItem('jwtToken', getURLToken())
-    const res = await fetch(baseUrl+'/verify-user', {
-      method: "GET", 
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Authorization": sessionStorage.getItem('jwtToken'),
-      },
-    })
+    try {
+      const tok = getURLToken()
+      sessionStorage.setItem('jwtToken', tok)
 
-    if (res.status !== 200) {
-      this.setState({route: ""})
-    } else { 
-      window.history.replaceState({}, document.title, "/")
-      this.setState({
-        route: 'has-token',
-        loggedIn: true
+      const res = await fetch(baseUrl+'/verify-user', {
+        method: "GET", 
+        mode: 'cors',
+        headers: {
+          "Authorization": tok,
+        },
       })
+
+      if (!res.ok) {
+        this.setState({route: "bad-submit"})
+      } else { 
+        window.history.replaceState({}, document.title, "/")
+        this.setState({
+          route: 'has-token',
+          loggedIn: true
+        })
+      }
+    } catch (e) {
+      this.setState({route: "bad-submit"})
     }
   }
   
@@ -172,22 +178,20 @@ class App extends Component {
       })
 
       const body = await res.json()
-      console.log('server res', body)
-      
-      if (body.received) {
-        // wait for model to be ready
+      console.log('bucketinfo body', body)
+
+      if (body) {
         this.setState({
-          route: 'model-submit',
           loaded: true,
-          polling: 10
+          route: 'has-model',
+          buckets: body,
         })
       } else {
         this.setState({
-          route: 'has-error',
-          loaded: true,
-          error: body,
+          route: "bad-submit",
+          loaded: true
         })
-      }
+      }  
     } catch (e) {
       this.setState({
         route: 'has-error',
@@ -197,47 +201,6 @@ class App extends Component {
     }
   }
 
-  async getBucketInfoAction() {
-    try {
-      const res = await fetch(baseUrl+'/training-data', {
-        method: "GET", 
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          "Authorization": sessionStorage.getItem('jwtToken'),
-        },
-      })
-
-      const body = await res.json()
-      console.log('getBucketInfo res', body)
-
-      if (body.bucketInfo) {
-        this.setState({
-          loaded: true,
-          route: 'has-model',
-          buckets: body.bucketInfo,
-          polling: 0
-        })
-      } else {
-        // try ten times and give up
-        // see componentDidMount for other side of this loop
-        const retries = (this.state.polling - 1)
-        console.log("retries", retries)
-        this.setState({
-          loaded: true,
-          route: 'has-error',
-          polling: retries, 
-          error: body,
-        })
-      }
-    } catch (e) {
-      this.setState({
-        loaded: true,
-        route: 'has-error',
-        error: e
-      })
-    }
-  }
-  
   async submitUploadFormAction(values) {
     try {
       console.log("SUBMIT UPLOAD FORM", this, values)
@@ -314,8 +277,15 @@ class App extends Component {
   }
 
   route() {
-    // validate token here
     switch (this.state.route) {
+      case "login-fail":
+        return <div>
+          <h2>Login Failed</h2>
+          <h3>Sign up today</h3>
+          <SignupForm
+            signupAction={this.signupAction.bind(this)}
+          /> 
+        </div>
       case "bad-submit":
         return <div className="bad-response">
             <h2>Sorry!</h2>
@@ -354,11 +324,10 @@ class App extends Component {
           submitModelTrainForm={this.submitModelTrainFormAction.bind(this)}
         />
         break
-      case "login-fail":
-        return <p>Login fail</p>
       case "model-submit":
         return <div id="model-submit">
           <h2>Just a moment while we create a machine learning model</h2>
+          <h3>This may take a few moments...</h3>
         </div>
         break
       case "has-model":

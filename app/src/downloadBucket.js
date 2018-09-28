@@ -22,12 +22,19 @@ module.exports.handler = async (event) => {
       headers: {
         'content-type': 'text/plain',
         'content-length': dl.ContentLength,
-        'Access-control-allow-origin': '*'
+        'Access-control-allow-origin': '*',
+        'Access-control-allow-credentials': true
       }
     })
   } catch (e) {
     console.log('DL-BUCKET', e)
-    throw e
+    return Promise.resolve({
+      statusCode: 500,
+      headers: {
+        'Access-control-allow-origin': '*',
+        'Access-control-allow-credentials': true
+      }
+    })
   }
 }
 

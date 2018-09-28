@@ -4,13 +4,13 @@ const secret = process.env.JWT_SECRET
 
 module.exports.handler = async (event) => {
   try {
-    console.log("eb-0000", JSON.parse(event.body))
     const eventBody = JSON.parse(event.body)
     const fieldNames = ["bucketName", "bucketUrl"]
     const _bx = api.formatReqFields(eventBody, fieldNames)
     const tok = event.headers.Authorization
     const session = jwt.verify(tok, secret)
     const user = session.user
+    console.log("TOKEN", tok, "SEC", secret, "USER", user)
     
     // tweak keys:
     const bx = _bx.map(row => {
@@ -24,7 +24,7 @@ module.exports.handler = async (event) => {
 
     const opts = {
       trainingData: trainingData,
-      dataFields: eventBody.dataFields
+      dataFields: eventBody.dataFields,
     }
 
     const bayes = await api.trainBucketizer(opts)
@@ -39,14 +39,19 @@ module.exports.handler = async (event) => {
       body: JSON.stringify(bucketInfo),
       headers: {
         'Content-type': 'application/json',
-        'Access-control-allow-origin': '*'
+        'Access-control-allow-origin': '*',
+        'Access-control-allow-credentials': true
       }
     })
   } catch (e) {
     console.log("CLASSIFY REQ ERROR", e)
-    return Promise.reject({
+    return Promise.resolve({
+      headers: {
+        'Content-type': 'application/json',
+        'Access-control-allow-origin': '*',
+        'Access-control-allow-credentials': true
+      },
       statusCode: 500,
-      body: JSON.stringify(e)
     })
   }
 }

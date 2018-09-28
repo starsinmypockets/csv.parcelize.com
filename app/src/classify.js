@@ -32,13 +32,18 @@ module.exports.handler = async (event) => {
       body: JSON.stringify(s3res),
       headers: {
         'Content-type': 'application/json',
-        'Access-control-allow-origin': '*'
+        'Access-control-allow-origin': '*',
+        'Access-control-allow-credentials': 'true',
       }
     })
   } catch (e) {
     console.log("CLASSIFY REQ ERROR", e)
     return Promise.resolve({
-      statusCode: 500
+      statusCode: 500,
+      headers: {
+        'Access-control-allow-origin': '*',
+        'Access-control-allow-credentials': 'true',
+      }
     })
   }
 }
