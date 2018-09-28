@@ -1,0 +1,26 @@
+{
+      "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended"
+  ],
+    "parserOptions": {
+        "ecmaVersion": 2017,
+        "sourceType": "module",
+        "ecmaFeatures": {
+                "jsx": true,
+                "modules": true
+        }
+    },
+    "env": { "es6": true, "node": true, "mocha": true, "browser": true },
+    "rules": {
+        "no-console": 0,
+        "react/prop-types": "ignore",
+        "react/no-unescaped-entities": ["error", {"forbid": [">",">","{", "}"]}],
+    },
+    "plugins": [ "mocha" ],
+    "settings": {
+        "react": {
+            "version": "16.4"
+        }
+    }
+}

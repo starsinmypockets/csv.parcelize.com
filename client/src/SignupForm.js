@@ -83,6 +83,7 @@ const MyInnerForm = props => {
   )
 }
 
+// eslint-disable-next-line
 function equalTo(ref: any, msg: any) {
   return Yup.mixed().test({
     name: 'equalTo',

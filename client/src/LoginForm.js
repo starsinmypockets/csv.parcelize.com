@@ -1,8 +1,24 @@
-import React, { Component } from 'react'
-import './forms.css'
-import {Button, Nav, Navbar, NavItem, NavDropdown, MenuItem, Grid, Row, Col, ListGroup, ListGroupItem, FormGroup, ControlLabel, FormControl, HelpBlock} from 'react-bootstrap'
-import * as Yup from 'yup'
-import { withFormik } from 'formik'
+import React, {Component} from 'react';
+import './forms.css';
+import {
+  Button,
+  Nav,
+  Navbar,
+  NavItem,
+  NavDropdown,
+  MenuItem,
+  Grid,
+  Row,
+  Col,
+  ListGroup,
+  ListGroupItem,
+  FormGroup,
+  ControlLabel,
+  FormControl,
+  HelpBlock,
+} from 'react-bootstrap';
+import * as Yup from 'yup';
+import {withFormik} from 'formik';
 
 // Our inner form component. Will be wrapped with Formik({..})
 const MyInnerForm = props => {
@@ -27,10 +43,12 @@ const MyInnerForm = props => {
           value={values.email}
           onChange={handleChange}
           onBlur={handleBlur}
-          className={errors.email && touched.email ? 'text-input error' : 'text-input'}
+          className={
+            errors.email && touched.email ? 'text-input error' : 'text-input'
+          }
         />
         {errors.email &&
-        touched.email && <div className="input-feedback">{errors.email}</div>}
+          touched.email && <div className="input-feedback">{errors.email}</div>}
       </div>
       <div class="login-form-inputs" style={{minHeight: '60px'}}>
         <input
@@ -40,17 +58,21 @@ const MyInnerForm = props => {
           value={values.password}
           onChange={handleChange}
           onBlur={handleBlur}
-          className={errors.password && touched.email ? 'text-input error' : 'text-input'}
+          className={
+            errors.password && touched.email ? 'text-input error' : 'text-input'
+          }
         />
         {errors.password &&
-        touched.password && <div className="input-feedback">{errors.password }</div>}
+          touched.password && (
+            <div className="input-feedback">{errors.password}</div>
+          )}
       </div>
-        <button type="submit" disabled={isSubmitting}>
-          Login
-        </button>
+      <button type="submit" disabled={isSubmitting}>
+        Login
+      </button>
     </form>
-  )
-}
+  );
+};
 
 function equalTo(ref: any, msg: any) {
   return Yup.mixed().test({
@@ -66,19 +88,19 @@ function equalTo(ref: any, msg: any) {
   });
 }
 
-Yup.addMethod(Yup.string, 'equalTo', equalTo)
+Yup.addMethod(Yup.string, 'equalTo', equalTo);
 
 const EnhancedForm = withFormik({
-  mapPropsToValues: () => ({ email: '' }),
+  mapPropsToValues: () => ({email: ''}),
   validationSchema: Yup.object().shape({
     email: Yup.string()
       .email('Invalid email address')
       .required('Email is required'),
-    password: Yup.string().required('Password field is required')
+    password: Yup.string().required('Password field is required'),
   }),
-  handleSubmit: (values, { props, setSubmitting }) => {
-    console.log("VV", values)
-    props.loginAction(values)
+  handleSubmit: (values, {props, setSubmitting}) => {
+    console.log('VV', values);
+    props.loginAction(values);
   },
   displayName: 'BasicForm', // helps with React DevTools
 })(MyInnerForm);
@@ -88,17 +110,14 @@ class LoginForm extends Component {
     return (
       <div id="bucketize-home">
         <Row>
-            <h2>Try it for free</h2>
-            <Col md={6} mdPush={3}>
-              <EnhancedForm 
-                loginAction={this.props.loginAction}
-              />
-            </Col>
+          <h2>Try it for free</h2>
+          <Col md={6} mdPush={3}>
+            <EnhancedForm loginAction={this.props.loginAction} />
+          </Col>
         </Row>
       </div>
-
-    )
+    );
   }
 }
 
-export default LoginForm
+export default LoginForm;
