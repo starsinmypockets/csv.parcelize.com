@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import {Button, Nav, Navbar, NavItem, NavDropdown, MenuItem, Grid, Row, Col, ListGroup, ListGroupItem, FormGroup, ControlLabel, FormControl, HelpBlock} from 'react-bootstrap'
-import TextArrayInput from './TextArrayInput.js'
+import TextArrayInput from './TextArrayInput'
+import DataFields from './DataFields'
 import { TagCloud } from 'react-tagcloud'
 import { withFormik } from 'formik';
 import * as Yup from 'yup'
@@ -9,7 +10,7 @@ class UploadForm extends Component {
   constructor(props, context) {
     super(props, context)
     const token = window.location.pathname.slice(1)
-    this.state = {token: token}
+    this.state = {token: token, dataFieldCount: 1}
   }
 
   handleSubmit(e) {
@@ -41,18 +42,44 @@ class UploadForm extends Component {
             value={values["url"]}
             onChange={handleChange}
             onBlur={handleBlur}
-            className={errors["url"] && touched["url"] ? 'text-input error' : 'text-input'}
+            className={errors["url"] && touched["url"] ? 'text-input error' : 'text-input'} 
           />
           {errors["url"] &&
           touched["url"] && <div className="input-feedback">{errors["url"]}</div>}
         </div>
+          <DataFields 
+            fieldName="dataFields" 
+            ct={this.state.dataFieldCount}
+            incrementDataFields={this.incrementDataFields.bind(this)}
+            decrementDataFields={this.decrementDataFields.bind(this)}
+            {...this.props} />
         <button type="submit" onClick={this.handleSubmit.bind(this)}>SUBMIT</button>
       </form>
     )
   }
+  
+  incrementDataFields(e) {
+    e.preventDefault()
+    console.log('+++++++++', this)
+    if (this.state.dataFieldCount < 5) {
+      const i = this.state.dataFieldCount + 1
+      this.setState({ 
+        dataFieldCount: i,
+      })
+    }
+  }
+
+  decrementDataFields(e) {
+    e.preventDefault()
+    if (this.state.dataFieldCount > 1) {
+      const i = this.state.dataFieldCount - 1
+      this.setState({ 
+        dataFieldCount: i,
+      })
+    }
+  }
 
   render() {
-    console.log(this)
     const tagClouds = Object.keys(this.props.buckets).map(buck => {
       const data = []
       this.props.buckets[buck].forEach(item => {
@@ -87,9 +114,14 @@ class UploadForm extends Component {
 const UploadPage = withFormik({
   mapPropsToValues: () => {},
   validationSchema: (props, context) => {
-    return Yup.object().shape({
+    const dataFieldsShape = [...Array(props.dataFieldCount).keys()].reduce((acc, i) => {
+      acc[`dataFields[${i}]`] = Yup.string().required('Add a valid csv row header title or remove this field (-)')
+      return acc
+    }, {})
+    const formShape = {
       url: Yup.string().url('Invalid url').required('URL required') 
-    })
+    }
+    return Yup.object().shape(Object.assign({}, dataFieldsShape, formShape))
   }
 })(UploadForm)
 

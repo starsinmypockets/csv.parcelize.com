@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import {Button, Nav, Navbar, NavItem, NavDropdown, MenuItem, Grid, Row, Col, ListGroup, ListGroupItem, FormGroup, ControlLabel, FormControl, HelpBlock} from 'react-bootstrap'
 import { withFormik } from 'formik';
 import * as Yup from 'yup'
+import DataFields from './DataFields'
 
 class TrainModelForm extends Component {
   constructor(props, context) {
@@ -17,7 +18,6 @@ class TrainModelForm extends Component {
   componentDidMount() {
     this.setState({
       bucketForms : this.getBucketForms(this.state.bucketCount),
-      dataFields: this.getDataFields(this.state.dataFieldCount)
     })
   }
 
@@ -39,7 +39,7 @@ class TrainModelForm extends Component {
       const url = 'bucketUrl' + i
 
       return (
-      <div className="bucket-group-field">
+      <Col md={6} className="bucket-group-field">
         <div className="bucket-form-field">
           <input
             id={name}
@@ -66,51 +66,17 @@ class TrainModelForm extends Component {
           {errors[url] &&
           touched[url] && <div className="input-feedback">{errors[url]}</div>}
         </div>
-      </div>
+      </Col>
       )
     })
 
     return (
-      <div className="bucket-fields">"
+      <div className="bucket-fields">
         {bucketFields}
       </div>
     )
   }
   
-  getDataFields(i) {
-    const {
-      values,
-      touched,
-      errors,
-      dirty,
-      isSubmitting,
-      handleChange,
-      handleBlur,
-      handleSubmit,
-      handleReset,
-    } = this.props;
-    
-    return [...Array(i).keys()].map(i => {
-      const name = `dataFields[${i}]`
-
-      return (
-        <div className="data-field-container">
-          <input
-            id={name}
-            placeholder={"CSV Data field"}
-            type="text"
-            value={values[name]}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            className={errors[name] && touched[name] ? 'text-input error' : 'text-input'}
-          />
-          {errors[name] &&
-          touched[name] && <div className="input-feedback">{errors[name]}</div>}
-        </div>
-      )
-    })
-  }
-
   incrementBuckets() {
     const maxBucketCount = this.props.bucketCount || 3
     if (this.state.bucketCount < maxBucketCount) {
@@ -138,7 +104,6 @@ class TrainModelForm extends Component {
       const i = this.state.dataFieldCount + 1
       this.setState({ 
         dataFieldCount: i,
-        dataFields: this.getDataFields(i)
       })
     }
   }
@@ -149,7 +114,6 @@ class TrainModelForm extends Component {
       const i = this.state.dataFieldCount - 1
       this.setState({ 
         dataFieldCount: i,
-        dataFields: this.getDataFields(i)
       })
     }
   }
@@ -165,30 +129,37 @@ class TrainModelForm extends Component {
     console.log(this.state)
     const form = 
       <form>
-        {this.state.bucketForms}
-        <div className="header-fields">
-          <p className="lead">Enter the fieldnames we are going to evaluate. For example: "title" and "description".</p>
-          <p>Fields will be combined and processed as a string. Fieldnames must be the same for all files, but only for the fields we are evaluating. Additional fields will be ignored.</p> 
-        </div>
-        {this.state.dataFields}<button className="increment-bucket" onClick={this.incrementDataFields.bind(this)}>+</button> <button className="increment-buckets" onClick={this.decrementDataFields.bind(this)}>-</button>
-        <button type="submit" onClick={this.handleSubmit.bind(this)}>SUBMIT</button>
+        <Row id="bucket-forms">
+          {this.state.bucketForms}
+        </Row>
+        <Row className="header-fields">
+          <Col>
+          <span className="h4">Field names</span><span> -- </span><span>Enter the fieldnames we are going to evaluate. For example: "title" and "description". Text from selected fields will be combined. Specified field names must be the same for all files.</span>
+          </Col>
+        </Row>
+        <br />
+        <DataFields 
+          fieldName="dataFields"
+          ct={this.state.dataFieldCount}
+          {...this.props}
+          incrementDataFields={this.incrementDataFields.bind(this)}
+          decrementDataFields={this.decrementDataFields.bind(this)}
+          />
+        <br />
+        <Row id="submit-training-data">  
+          <br />
+          <button type="submit" onClick={this.handleSubmit.bind(this)}>SUBMIT</button>
+        </Row>
       </form>
     
     return (
-    <Grid id="classifier">
+    <Grid id="classifier" className="text-left">
+      <h2 className="text-center">Step 1 -- Train your model</h2>
       <Row>
-      <h1>Step 1 -- Train your model</h1>
-      <div id="training-data-page">
-        <h2 className="numBuckets">Number of Buckets:  {this.state.bucketCount} <button className="increment-bucket" onClick={this.incrementBuckets.bind(this)}>(+)</button> <button className="increment-buckets" onClick={this.decrementBuckets.bind(this)}>(-)</button></h2>
-      </div>
-
-      <h3>"Buckets"</h3>
-      <p>
-        We're going to classify your information into "Buckets". Each bucket is identified by a key (for instance, "information request") and has an associated csv file. The csv file will serve as training information for this bucket. 
-      </p>
-      <p>
-        You can have as many buckets as you need, but you need training data for each bucket, and all of the training data need to be formatted the same.
-      </p>
+        <span className="h4">Buckets ({this.state.bucketCount})</span>
+        <span> -- </span>
+        <span>CSV rows will be classified into "buckets". Each bucket needs training data which should be a CSV of its own.</span>
+        <h5 className="numBuckets"><button className="increment-bucket" onClick={this.incrementBuckets.bind(this)}>(+)</button> <button className="increment-buckets" onClick={this.decrementBuckets.bind(this)}>(-)</button></h5>
       </Row>
       {form}
     </Grid>

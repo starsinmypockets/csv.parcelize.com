@@ -11,7 +11,6 @@ import PasswordForm from './PasswordForm'
 import { getURLToken, getAuthHeader } from './utils'
 import filesaver from 'file-saver'
 
-// const baseUrl = "https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev"
 const baseUrl = "https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev"
 
 class App extends Component {
@@ -345,7 +344,7 @@ class App extends Component {
         return (
           <div id="dl-links">
             <h2>Your parcelized csv files:</h2>
-            <ul>
+            <ul style={{listStyle: 'none'}}>
               {this.state.dlLinks}
             </ul>
           </div>
