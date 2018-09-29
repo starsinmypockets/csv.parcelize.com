@@ -10,7 +10,11 @@ import UploadForm from './UploadForm';
 import PasswordForm from './PasswordForm';
 import {getURLToken} from './utils';
 
-const baseUrl = 'https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev';
+const env = 'LOCAL'; // AWS or LOCAL
+const baseUrl =
+  env === 'AWS'
+    ? 'https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev'
+    : 'http://localhost:4000';
 
 class App extends Component {
   constructor(props) {
@@ -64,7 +68,9 @@ class App extends Component {
       if (!res.ok) {
         this.setState({route: 'bad-submit'});
       } else {
-        this.setState({route: 'submit-sent'});
+        this.setState({
+          route: 'submit-sent',
+        });
       }
     } catch (e) {
       console.log(e);
@@ -286,7 +292,6 @@ class App extends Component {
       case 'login-fail':
         return (
           <div>
-            <h2>Login Failed</h2>
             <h3>Sign up today</h3>
             <SignupForm signupAction={this.signupAction.bind(this)} />
           </div>

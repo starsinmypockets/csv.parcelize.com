@@ -10,10 +10,9 @@ module.exports.handler = async (event) => {
     const token = jwt.sign({user: sessUser}, process.env.JWT_SECRET, { expiresIn: JWT_EXPIRATION_TIME})
     eventBody.token = token
     const user = await api.createUser(eventBody)
-    console.log('...........', eventBody, 'XXX', user)
     
     const emailOpts = {
-      from: 'admin@parcelize.com',
+      from: 'starsinmypockets@gmail.com',
       to: user.username,
       subject: "Welcome to Parcelize!",
       text: `Have a look around. We just want to make a few simple tools to help make your life easier. Validate your account here: http://${CLIENT_DOMAIN}?token=${token}`,

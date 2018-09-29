@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
   updated: { type: Date, default: Date.now },
   verified: { type: Boolean, default: false },
   password: { type: String },
-  appUses: { type: Number, default: 0 },
+  appUses: { type: Object, default: {}},
 })
 
 
