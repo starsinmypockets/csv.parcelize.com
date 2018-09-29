@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Row} from 'react-bootstrap';
+import {Row, Button} from 'react-bootstrap';
 import DataFields from './DataFields';
 import {TagCloud} from 'react-tagcloud';
 import {withFormik} from 'formik';
@@ -99,6 +99,8 @@ class UploadForm extends Component {
           We've built a model based on your training data. Enter a link to a
           file you want to classify.
         </p>
+        <p>If you would like to retrain your model <Button bsSize="sm" onClick={this.props.retrainModel}>Click Here</Button></p>
+        <p>**note** that in alpha you can only store one model at a time. You will not be able to access previous models.</p>
         {this.getUploadForm()}
         <Row>{tagClouds}</Row>
       </div>

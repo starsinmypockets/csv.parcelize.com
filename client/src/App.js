@@ -35,7 +35,16 @@ class App extends Component {
     }
 
     if (loggedIn) {
-      this.getLoggedUserAction()
+      this.getLoggedUserAction();
+    }
+  }
+
+  hasBuckets() {
+    try {
+      return this.state.buckets && Object.keys(this.state.buckets).length > 0;
+    } catch (e) {
+      console.log('HAS BUCKETS', e);
+      return false;
     }
   }
 
@@ -152,17 +161,17 @@ class App extends Component {
         },
       });
 
-      const body = await res.json()
+      const body = await res.json();
       if (!res.ok) {
         this.setState({
-          route: 'bad-submit'
-        })
+          route: 'bad-submit',
+        });
       } else {
         this.setState({
           user: body.user,
           buckets: body.bucketInfo,
-          route: 'user-home'
-        })
+          route: 'user-home',
+        });
       }
     } catch (e) {
       this.setState({
@@ -198,6 +207,10 @@ class App extends Component {
     } catch (e) {
       this.setState({route: 'bad-submit'});
     }
+  }
+
+  async retrainModelAction() {
+    this.setState({buckets: null, route: 'user-home'});
   }
 
   async submitModelTrainFormAction(values) {
@@ -355,11 +368,12 @@ class App extends Component {
       case 'has-token':
         return <PasswordForm passwordAction={this.passwordAction.bind(this)} />;
       case 'user-home':
-        if (this.state.buckets) {
+        if (this.hasBuckets()) {
           return (
             <UploadForm
               buckets={this.state.buckets}
               submitUploadForm={this.submitUploadFormAction.bind(this)}
+              retrainModel={this.retrainModelAction.bind(this)}
             />
           );
         } else {
