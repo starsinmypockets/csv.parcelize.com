@@ -21,7 +21,7 @@ class App extends Component {
     super(props);
     const token = getURLToken();
     const loggedIn = sessionStorage.getItem('jwtToken');
-    const initialRoute = loggedIn ? 'has-account' : 'home';
+    const initialRoute = loggedIn ? 'user-home' : 'home';
     this.state = {
       token: token,
       route: initialRoute,
@@ -32,6 +32,10 @@ class App extends Component {
     if (token) {
       console.log('tok'), token;
       this.verifyTokenAction();
+    }
+
+    if (loggedIn) {
+      this.getLoggedUserAction()
     }
   }
 
@@ -135,6 +139,37 @@ class App extends Component {
       }
     } catch (e) {
       this.setState({route: 'login-fail'});
+    }
+  }
+
+  async getLoggedUserAction() {
+    try {
+      const res = await fetch(baseUrl + '/verify-user', {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          Authorization: sessionStorage.getItem('jwtToken'),
+        },
+      });
+
+      const body = await res.json()
+      if (!res.ok) {
+        this.setState({
+          route: 'bad-submit'
+        })
+      } else {
+        this.setState({
+          user: body.user,
+          buckets: body.bucketInfo,
+          route: 'user-home'
+        })
+      }
+    } catch (e) {
+      this.setState({
+        route: 'has-error',
+        loaded: true,
+        error: e,
+      });
     }
   }
 
@@ -288,6 +323,7 @@ class App extends Component {
   }
 
   route() {
+    console.log(this.state.route, this.state);
     switch (this.state.route) {
       case 'login-fail':
         return (
@@ -318,7 +354,25 @@ class App extends Component {
         );
       case 'has-token':
         return <PasswordForm passwordAction={this.passwordAction.bind(this)} />;
-      case 'has-account':
+      case 'user-home':
+        if (this.state.buckets) {
+          return (
+            <UploadForm
+              buckets={this.state.buckets}
+              submitUploadForm={this.submitUploadFormAction.bind(this)}
+            />
+          );
+        } else {
+          return (
+            <TrainModelForm
+              appUses={this.state.appUses}
+              trainingModel={this.state.trainingModel}
+              submitModelTrainForm={this.submitModelTrainFormAction.bind(this)}
+            />
+          );
+        }
+
+      case 'train-model':
         return (
           <TrainModelForm
             appUses={this.state.appUses}
@@ -537,7 +591,7 @@ class App extends Component {
         />
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Parcelize -- CSV</h1>
+          <h1 className="App-title">Parcelize -- CSV (alpha)</h1>
         </header>
         <Loader loaded={this.state.loaded}>
           <Grid className="main">

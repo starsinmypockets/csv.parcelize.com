@@ -1,105 +1,107 @@
-const {User, Bayes, Data} = require('./db.js')
-const Bucketizer = require('./Bucketizer.js')
-const stopwords = require('./stopwords/index.js')
+const {User, Bayes, Data} = require('./db.js');
+const Bucketizer = require('./Bucketizer.js');
+const stopwords = require('./stopwords/index.js');
 
-const log = console.log
+const log = console.log;
 
-const api = module.exports = {
-  createUser: async (opts) => {
+const api = (module.exports = {
+  createUser: async opts => {
     try {
-      const user = new User(opts)
-      return user.save()
+      const user = new User(opts);
+      return user.save();
     } catch (e) {
-      log(e)
-      return false
+      log(e);
+      return false;
     }
   },
 
-  updateUser: async (opts) => {
+  updateUser: async opts => {
     try {
-      const user = await api.findUserByEmail(opts.username)
+      const user = await api.findUserByEmail(opts.username);
 
-      if (opts.password)  {
-        const bcrypt = require('bcryptjs')
-        const { promisify } = require('util')
-        const SALT_WORK_FACTOR = 10
-        const genSalt = promisify(bcrypt.genSalt)
-        const hash = promisify(bcrypt.hash)
-        const salt = await genSalt(SALT_WORK_FACTOR)
-        const pwHash = await hash(opts.password, salt)
+      if (opts.password) {
+        const bcrypt = require('bcryptjs');
+        const {promisify} = require('util');
+        const SALT_WORK_FACTOR = 10;
+        const genSalt = promisify(bcrypt.genSalt);
+        const hash = promisify(bcrypt.hash);
+        const salt = await genSalt(SALT_WORK_FACTOR);
+        const pwHash = await hash(opts.password, salt);
 
-        opts.password = pwHash
+        opts.password = pwHash;
       }
 
-      return user.update(opts)
+      return user.update(opts);
     } catch (e) {
-      log("UPDATE-USER", e)
-      return false
+      log('UPDATE-USER', e);
+      return false;
     }
   },
 
-  verifyUserAuth: async (opts) => {
+  verifyUserAuth: async opts => {
     try {
-      const user = await User.findOne({bearerToken: opts.bearerToken})
-      return Promise.resolve(user)
+      const user = await User.findOne({bearerToken: opts.bearerToken});
+      return Promise.resolve(user);
     } catch (e) {
-      log (e)
-      return false
+      log(e);
+      return false;
     }
   },
-  
+
   // returns user
-  verifyPasswordAuth: async (opts) => {
+  verifyPasswordAuth: async opts => {
     try {
-      const bcrypt = require('bcryptjs')
-      const user = await api.findUserByEmail(opts.username)
-      const isMatch = await bcrypt.compare(opts.password, user.password)
-      return (isMatch) ? user : false
+      const bcrypt = require('bcryptjs');
+      const user = await api.findUserByEmail(opts.username);
+      const isMatch = await bcrypt.compare(opts.password, user.password);
+      return isMatch ? user : false;
     } catch (e) {
-      log("VERIFY PW AUTH", e)
-      return false
+      log('VERIFY PW AUTH', e);
+      return false;
     }
   },
 
   generateToken: () => {
-    return require('crypto').randomBytes(24).toString('hex')
+    return require('crypto')
+      .randomBytes(24)
+      .toString('hex');
   },
 
-  findUserByToken: (tok) => {
-    return User.findOne({bearerToken: tok})
-  },
-  
-  findUserByUsername: (username) => {
-    return User.findOne({username})
+  findUserByToken: tok => {
+    return User.findOne({bearerToken: tok});
   },
 
-  findUserByEmail: (username) => {
-    return User.findOne({username})
+  findUserByUsername: username => {
+    return User.findOne({username});
   },
 
-  findUser: (opts) => {
-    return User.findOne(opts)
+  findUserByEmail: username => {
+    return User.findOne({username});
+  },
+
+  findUser: opts => {
+    return User.findOne(opts);
   },
 
   getUserByEmail: this.findUserByEmail,
 
   getUserByToken: this.findUserByToken,
-  
+
   // return latest
-  getBayes: async (username) => {
-    return Bayes.findOne({username}, {}, {sort: {'created_at': -1}})
+  getBayes: async username => {
+    return Bayes.findOne({username}, {}, {sort: {created_at: -1}});
   },
 
-  sendAuthEmail: async (opts) => {
-    console.log("SEND AUTH EMAIL", JSON.stringify(opts))
+  sendAuthEmail: async opts => {
+    console.log('SEND AUTH EMAIL', JSON.stringify(opts));
     try {
-      const aws = require('aws-sdk')
-      aws.config.update({region: 'us-east-1'})
-      const ses = new aws.SES()
+      const aws = require('aws-sdk');
+      aws.config.update({region: 'us-east-1'});
+      const ses = new aws.SES();
 
       const mailOptions = {
         Source: opts.from,
-        Destination:  { ToAddresses: [opts.to] },
+        Destination: {ToAddresses: [opts.to]},
         Message: {
           Subject: {
             Charset: 'UTF-8',
@@ -108,147 +110,147 @@ const api = module.exports = {
           Body: {
             Text: {
               Charset: 'UTF-8',
-              Data: opts.text
-            }
-          }
-        }
-      }
+              Data: opts.text,
+            },
+          },
+        },
+      };
 
-      const data = await ses.sendEmail(mailOptions).promise()
-      return data
+      const data = await ses.sendEmail(mailOptions).promise();
+      return data;
     } catch (e) {
-      console.log('SEND AUTH EMAIL', e)
-      return Promise.reject(e)
+      console.log('SEND AUTH EMAIL', e);
+      return Promise.reject(e);
     }
   },
-  
+
   /**
    * given valid opts with valid urls, get trainingData
    * from GMAIL csvs
    * @param opts = [{bucketName: String, url: Valid URL}, ...]
    * @return {
    *  bucket1:  [
-   *    {data row with datafields} 
+   *    {data row with datafields}
    *  ]
    * }
    **/
-  getCSVData: async (opts) => {
-    const getCSVData = require("./getCSVData.js")
-    return await getCSVData(opts)
+  getCSVData: async opts => {
+    const getCSVData = require('./getCSVData.js');
+    return await getCSVData(opts);
   },
-  
+
   /**
    * @param opts = {
    *   trainingData: // raw training data
    *   dataFields: ["field1", "field2",...] // extant fields from trainingData and inputData both
    * }
    * @return training model object for bayes classifier
-   * 
+   *
    **/
-  trainBucketizer: async (opts) => {
+  trainBucketizer: async opts => {
     try {
-      const b8r = new Bucketizer
-      
+      const b8r = new Bucketizer();
+
       b8r.init({
         dataFields: opts.dataFields,
         trainingData: opts.trainingData,
-        stopWords: stopwords
-      })
+        stopWords: stopwords,
+      });
 
-      return b8r.train()
+      return b8r.train();
     } catch (e) {
-      log("TRAIN BUCKETIZER", e)
-      return {err: 'fail'}
+      log('TRAIN BUCKETIZER', e);
+      return {err: 'fail'};
     }
   },
 
-  getBucketInfo: async (bayes) => {
+  getBucketInfo: async bayes => {
     try {
-      const b8r = new Bucketizer
-      
-      b8r.init({
-        classifierModel: bayes
-      })
+      const b8r = new Bucketizer();
 
-      return b8r.getBayesModelInfo()
+      b8r.init({
+        classifierModel: bayes,
+      });
+
+      return b8r.getBayesModelInfo();
     } catch (e) {
-      log("GET BUCKETIZER INFO", e)
-      return {err: 'fail'}
+      log('GET BUCKETIZER INFO', e);
+      return;
     }
   },
-  
-  classifyData: async (opts) => {
-    const b8r = new Bucketizer
-    const bayes = await api.getBayes(opts.username)
-    bayes.model.options = bayes.model.options || {}
+
+  classifyData: async opts => {
+    const b8r = new Bucketizer();
+    const bayes = await api.getBayes(opts.username);
+    bayes.model.options = bayes.model.options || {};
 
     await b8r.init({
       classifierModel: bayes.bayesModel,
       data: opts.data,
-      dataFields: opts.dataFields
-    })
+      dataFields: opts.dataFields,
+    });
 
-    await b8r.doBayes()
+    await b8r.doBayes();
 
-    return b8r.buckets
+    return b8r.buckets;
     // send CSVs
   },
 
   formatReqFields: (body, fieldNames) => {
-    const bx = {}
+    const bx = {};
     Object.keys(body).forEach(name => {
       fieldNames.map(f => {
         if (name.search(f) >= 0) {
-          const n = parseInt(name.replace(f, ''))
-          bx[n] = bx[n] || {}
-          bx[n][f] = body[name]
+          const n = parseInt(name.replace(f, ''));
+          bx[n] = bx[n] || {};
+          bx[n][f] = body[name];
         }
-      })
-    }, [])
+      });
+    }, []);
     return Object.keys(bx).map(row => {
-      return bx[row]
-    })
+      return bx[row];
+    });
   },
 
-  formatGoogleDocsLink: (str) => {
-    const id = str.replace(/http(.){0,1}:\/\//,'').split('/')[3]
-    return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv`
+  formatGoogleDocsLink: str => {
+    const id = str.replace(/http(.){0,1}:\/\//, '').split('/')[3];
+    return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv`;
   },
 
-  saveBayesModel: async  (opts) => {
+  saveBayesModel: async opts => {
     try {
-      const bayes = new Bayes(opts)
-      const saved = await bayes.save()
-      return (saved)
+      const bayes = new Bayes(opts);
+      const saved = await bayes.save();
+      return saved;
     } catch (e) {
-      log("SAVE MODEL", e)
-    }
-  },
-  
-  saveData: async (opts) => {
-    try {
-      const data = new Data(opts)
-      const saved = await data.save()
-      return saved
-    } catch (e) {
-      console.log('SAVE DATA', e)
-      return Promise.reject(e)
+      log('SAVE MODEL', e);
     }
   },
 
-  json2csv: (json) => {
-    const Json2csvParser = require('json2csv').Parser
+  saveData: async opts => {
     try {
-      const parser = new Json2csvParser()
-      const csv = parser.parse(json)
-      return csv
+      const data = new Data(opts);
+      const saved = await data.save();
+      return saved;
     } catch (e) {
-      console.log("JSON2CSV", e)
-      return false
+      console.log('SAVE DATA', e);
+      return Promise.reject(e);
     }
   },
 
-  getData: (opts) => {
-    return Data.findOne(opts)
-  }
-}
+  json2csv: json => {
+    const Json2csvParser = require('json2csv').Parser;
+    try {
+      const parser = new Json2csvParser();
+      const csv = parser.parse(json);
+      return csv;
+    } catch (e) {
+      console.log('JSON2CSV', e);
+      return false;
+    }
+  },
+
+  getData: opts => {
+    return Data.findOne(opts);
+  },
+});

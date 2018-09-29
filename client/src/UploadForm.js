@@ -1,7 +1,5 @@
 import React, {Component} from 'react';
-import {
-  Row,
-} from 'react-bootstrap';
+import {Row} from 'react-bootstrap';
 import DataFields from './DataFields';
 import {TagCloud} from 'react-tagcloud';
 import {withFormik} from 'formik';
@@ -21,13 +19,7 @@ class UploadForm extends Component {
   }
 
   getUploadForm() {
-    const {
-      values,
-      touched,
-      errors,
-      handleChange,
-      handleBlur,
-    } = this.props;
+    const {values, touched, errors, handleChange, handleBlur} = this.props;
 
     return (
       <form>
@@ -103,7 +95,6 @@ class UploadForm extends Component {
 
     return (
       <div id="upload-form-main">
-        <h2>Success!</h2>
         <p className="lead">
           We've built a model based on your training data. Enter a link to a
           file you want to classify.
@@ -116,7 +107,7 @@ class UploadForm extends Component {
 }
 const UploadPage = withFormik({
   mapPropsToValues: () => {},
-  validationSchema: (props) => {
+  validationSchema: props => {
     const dataFieldsShape = [...Array(props.dataFieldCount).keys()].reduce(
       (acc, i) => {
         acc[`dataFields[${i}]`] = Yup.string().required(

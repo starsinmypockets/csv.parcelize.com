@@ -29,14 +29,17 @@ module.exports.handler = async event => {
 
     const bayes = await api.trainBucketizer(opts);
 
-    await api.saveBayesModel({bayesModel: bayes, username: user.username});
-    await api.saveData({
-      data: trainingData,
-      type: trainingData,
-      username: user.username,
-    });
+    const [bReturn, dReturn, bucketInfo] = await Promise.all([
+      api.saveBayesModel({bayesModel: bayes, username: user.username}),
+      api.saveData({
+        data: trainingData,
+        type: trainingData,
+        username: user.username,
+      }),
+      api.getBucketInfo(bayes),
+    ]);
 
-    const bucketInfo = await api.getBucketInfo(bayes);
+    console.log('pss', bReturn, dReturn, bucketInfo);
 
     return Promise.resolve({
       statusCode: 200,
