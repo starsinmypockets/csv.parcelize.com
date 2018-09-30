@@ -10,11 +10,14 @@ import UploadForm from './UploadForm';
 import PasswordForm from './PasswordForm';
 import {getURLToken} from './utils';
 
-const env = 'LOCAL'; // AWS or LOCAL
-const baseUrl =
-  env === 'AWS'
-    ? 'https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev'
-    : 'http://localhost:4000';
+const hostname = window && window.location && window.location.hostname;
+let baseUrl;
+
+if (hostname === 'csv.parcelize.com') {
+  baseUrl = 'https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev';
+} else if (hostname === 'localhost') {
+  baseUrl = 'http://localhost:4000';
+}
 
 class App extends Component {
   constructor(props) {
@@ -108,7 +111,7 @@ class App extends Component {
         this.setState({route: 'bad-submit'});
       } else {
         this.setState({
-          route: 'has-account',
+          route: 'user-home',
           loggedIn: 'true',
         });
       }

@@ -52,7 +52,6 @@ functions:
         - http:
             path: /authenticate-user
             method: post
-            integration: lambda-proxy
             authorizer: authorize
             cors: true
     environment:

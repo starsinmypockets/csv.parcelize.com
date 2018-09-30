@@ -11,7 +11,8 @@ module.exports.handler = async event => {
     const user = await api.findUserByUsername(session.user.username);
 
     const bayes = await api.getBayes(session.user.username);
-    const bucketInfo = await api.getBucketInfo(bayes.bayesModel);
+    console.log('BBB', bayes);
+    const bucketInfo = bayes ? await api.getBucketInfo(bayes.bayesModel) : {};
 
     console.log('USER', user, 'bucketInfo');
 
@@ -24,7 +25,7 @@ module.exports.handler = async event => {
         body: JSON.stringify({
           user: user,
           bucketInfo: bucketInfo,
-          session: session
+          session: session,
         }),
       });
     } else {

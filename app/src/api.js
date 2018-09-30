@@ -17,8 +17,6 @@ const api = (module.exports = {
 
   updateUser: async opts => {
     try {
-      const user = await api.findUserByEmail(opts.username);
-
       if (opts.password) {
         const bcrypt = require('bcryptjs');
         const {promisify} = require('util');
@@ -31,7 +29,7 @@ const api = (module.exports = {
         opts.password = pwHash;
       }
 
-      return user.update(opts);
+      return await User.findOneAndUpdate({username: opts.username}, opts);
     } catch (e) {
       log('UPDATE-USER', e);
       return false;
