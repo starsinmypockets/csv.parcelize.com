@@ -100,12 +100,12 @@ describe('API tests', () => {
         it('Should save and retrieve bayes model', async () => {
           const model = await api.saveBayesModel({
             bayesModel: bayesModel,
-            username: testUser.username
+            username: testUser.username,
           });
 
-          console.log('Bayes', model)
-          assert('has model', model)
-          assert('model has categories', model.categories)
+          console.log('Bayes', model);
+          assert('has model', model);
+          assert('model has categories', model.categories);
 
           const returnBayesModel = await api.getBayes(testUser.username);
           const returnedBayesModel = JSON.parse(returnBayesModel.bayesModel);
