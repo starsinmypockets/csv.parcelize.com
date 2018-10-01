@@ -11,6 +11,7 @@ class DataFields extends Component {
       errors,
       handleChange,
       handleBlur,
+      placeholder
     } = this.props;
 
     return [...Array(ct).keys()].map(i => {
@@ -21,7 +22,7 @@ class DataFields extends Component {
           <div className="data-field-container">
             <input
               id={name}
-              placeholder={'CSV Data field'}
+              placeholder={placeholder}
               type="text"
               value={values[name]}
               onChange={handleChange}

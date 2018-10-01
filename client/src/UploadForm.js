@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Row, Button} from 'react-bootstrap';
+import {Row, Col, Button} from 'react-bootstrap';
 import DataFields from './DataFields';
 import {TagCloud} from 'react-tagcloud';
 import {withFormik} from 'formik';
@@ -9,7 +9,37 @@ class UploadForm extends Component {
   constructor(props, context) {
     super(props, context);
     const token = window.location.pathname.slice(1);
-    this.state = {token: token, dataFieldCount: 1};
+    const countFields = Object.keys(this.props.buckets).reduce(
+      (acc, bucket) => {
+        acc[`${bucket}FieldCount`] = 1;
+        return acc;
+      },
+      {},
+    );
+    this.state = Object.assign({}, countFields, {
+      token: token,
+      dataFieldCount: 1,
+    });
+  }
+
+  incrementFormFields(e, field, max = 5, op = 'up') {
+    e.preventDefault();
+    const countField = `${field}FieldCount`;
+    let i;
+
+    if (op === 'up' && this.state[countField] < max) {
+      i = this.state[countField] + 1;
+    }
+
+    if (op === 'down' && this.state[countField] > 1) {
+      i = this.state[countField] - 1;
+    }
+
+    if (i) {
+      const formState = {};
+      formState[countField] = i;
+      this.setState(formState);
+    }
   }
 
   handleSubmit(e) {
@@ -20,6 +50,27 @@ class UploadForm extends Component {
 
   getUploadForm() {
     const {values, touched, errors, handleChange, handleBlur} = this.props;
+    const bx = Object.keys(this.props.buckets);
+    const mdCols = Math.floor(12 / bx.length);
+    const bucketTerms = bx.map(bucket => {
+      return (
+        <Col md={mdCols} key={bucket}>
+          <h4>{bucket}</h4>
+          <DataFields
+            fieldName={`bucket${bucket}`}
+            ct={this.state[`${bucket}FieldCount`]}
+            placeholder={`${bucket} term`}
+            incrementDataFields={e =>
+              this.incrementFormFields(e, bucket, 5, 'up')
+            }
+            decrementDataFields={e =>
+              this.incrementFormFields(e, bucket, null, 'down')
+            }
+            {...this.props}
+          />
+        </Col>
+      );
+    });
 
     return (
       <form>
@@ -45,36 +96,23 @@ class UploadForm extends Component {
         <DataFields
           fieldName="dataFields"
           ct={this.state.dataFieldCount}
-          incrementDataFields={this.incrementDataFields.bind(this)}
-          decrementDataFields={this.decrementDataFields.bind(this)}
+          placeholder="CSV Data Field"
+          incrementDataFields={e =>
+            this.incrementFormFields(e, 'data', 5, 'up')
+          }
+          decrementDataFields={e =>
+            this.incrementFormFields(e, 'data', null, 'down')
+          }
           {...this.props}
         />
+        <h3>Classifier terms</h3>
+        <p>Always ssociate terms with a buckets:</p>
+        {bucketTerms}
         <button type="submit" onClick={this.handleSubmit.bind(this)}>
           SUBMIT
         </button>
       </form>
     );
-  }
-
-  incrementDataFields(e) {
-    e.preventDefault();
-    console.log('+++++++++', this);
-    if (this.state.dataFieldCount < 5) {
-      const i = this.state.dataFieldCount + 1;
-      this.setState({
-        dataFieldCount: i,
-      });
-    }
-  }
-
-  decrementDataFields(e) {
-    e.preventDefault();
-    if (this.state.dataFieldCount > 1) {
-      const i = this.state.dataFieldCount - 1;
-      this.setState({
-        dataFieldCount: i,
-      });
-    }
   }
 
   render() {
@@ -99,32 +137,55 @@ class UploadForm extends Component {
           We've built a model based on your training data. Enter a link to a
           file you want to classify.
         </p>
-        <p>If you would like to retrain your model <Button bsSize="sm" onClick={this.props.retrainModel}>Click Here</Button></p>
-        <p>**note** that in alpha you can only store one model at a time. You will not be able to access previous models.</p>
+        <p>
+          If you would like to retrain your model{' '}
+          <Button bsSize="sm" onClick={this.props.retrainModel}>
+            Click Here
+          </Button>
+        </p>
+        <p>
+          **note** that in alpha you can only store one model at a time. You
+          will not be able to access previous models.
+        </p>
         {this.getUploadForm()}
         <Row>{tagClouds}</Row>
       </div>
     );
   }
 }
+
 const UploadPage = withFormik({
   mapPropsToValues: () => {},
   validationSchema: props => {
-    const dataFieldsShape = [...Array(props.dataFieldCount).keys()].reduce(
-      (acc, i) => {
-        acc[`dataFields[${i}]`] = Yup.string().required(
-          'Add a valid csv row header title or remove this field (-)',
-        );
-        return acc;
+    let dataFieldsShape = {};
+    for (let i = 0; i < props.dataFieldCount; i++) {
+      dataFieldsShape[`dataFields[${i}]`] = Yup.string().required(
+        'Add a valid csv row header title or remove this field (-)',
+      );
+    }
+
+    const bucketFieldsShape = Object.keys(props.buckets).reduce(
+      (acc, bucket) => {
+        for (let i = 0; i < props[`${bucket}FieldCount`]; i++) {
+          acc[`bucket${bucket}Field[${i}]`] = Yup.string().required(
+            'Add a valid search term for this bucket, or remove the field (-)',
+          );
+          return acc;
+        }
       },
       {},
     );
+
     const formShape = {
       url: Yup.string()
         .url('Invalid url')
         .required('URL required'),
     };
-    return Yup.object().shape(Object.assign({}, dataFieldsShape, formShape));
+    const validationObject = Yup.object().shape(
+      Object.assign({}, bucketFieldsShape, dataFieldsShape, formShape),
+    );
+    console.log('VALIDATOR');
+    return validationObject;
   },
 })(UploadForm);
 
