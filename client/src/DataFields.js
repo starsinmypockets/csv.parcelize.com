@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Row, Col} from 'react-bootstrap';
+import {Row, Col, Button} from 'react-bootstrap';
 
 class DataFields extends Component {
   getDataFields() {
@@ -11,14 +11,14 @@ class DataFields extends Component {
       errors,
       handleChange,
       handleBlur,
-      placeholder
+      placeholder,
     } = this.props;
 
     return [...Array(ct).keys()].map(i => {
       const name = `${fieldName}[${i}]`;
 
       return (
-        <Col md={3} key={i}>
+        <Col sm={3} key={i}>
           <div className="data-field-container">
             <input
               id={name}
@@ -47,23 +47,31 @@ class DataFields extends Component {
     console.log('DFDF', this.getDataFields());
     return (
       <div>
-        <Row id="data-field-controls" style={{textAlign: ''}}>
-          <Col>
+        <Row id="data-fields" style={{textAlign: ''}}>
+          {this.getDataFields()}
+          <Col sm={3}>
             <h5>
-              <button
+              <Button
                 className="increment-bucket"
-                onClick={this.props.incrementDataFields}>
-                +
-              </button>{' '}
-              <button
+                onClick={this.props.incrementDataFields}
+                bsSize="xsmall"
+                bsStyle="primary"
+              >
+              +
+              </Button>
+              {' '}
+              <Button
                 className="increment-buckets"
-                onClick={this.props.decrementDataFields}>
-                -
-              </button>
+                onClick={this.props.decrementDataFields}
+                bsStyle="primary"
+                bsSize="xsmall"
+              >
+               - 
+
+              </Button>
             </h5>
           </Col>
         </Row>
-        <Row id="data-fields">{this.getDataFields()}</Row>
       </div>
     );
   }

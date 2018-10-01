@@ -145,7 +145,7 @@ class App extends Component {
       } else {
         sessionStorage.setItem('jwtToken', data.token);
         this.setState({
-          route: 'has-account',
+          route: 'user-home',
           loggedIn: true,
         });
       }
