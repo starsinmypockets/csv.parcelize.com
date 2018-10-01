@@ -188,10 +188,13 @@ const api = (module.exports = {
       dataFields: opts.dataFields,
     });
 
+    if (opts.multiTermSearch) {
+      b8r.doMultiTermSearch(opts.multiTermSearch);
+    }
+
     await b8r.doBayes();
 
     return b8r.buckets;
-    // send CSVs
   },
 
   formatReqFields: (body, fieldNames) => {
