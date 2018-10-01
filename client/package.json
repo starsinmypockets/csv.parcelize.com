@@ -1,6 +1,7 @@
 {
-  "name": "dreamtiger",
-  "version": "0.1.0",
+  "name": "parcelize-csv",
+  "version": "0.0.1",
+  "release": "alpha",
   "private": true,
   "dependencies": {
     "bayes": "0.0.7",

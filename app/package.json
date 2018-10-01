@@ -1,6 +1,7 @@
 {
   "name": "dreamtiger",
   "version": "0.1.0",
+  "release": "alpha",
   "private": true,
   "dependencies": {
     "archiver": "^3.0.0",

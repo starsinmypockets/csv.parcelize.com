@@ -11,10 +11,16 @@ module.exports.handler = async event => {
       expiresIn: JWT_EXPIRATION_TIME,
     });
     eventBody.token = token;
-    const user = await api.createUser(eventBody);
+
+    const userOpts = {
+      username: eventBody.username,
+      name: eventBody.name,
+    };
+
+    const user = await api.createUser(userOpts);
 
     const emailOpts = {
-      from: 'starsinmypockets@gmail.com',
+      from: 'admin@parcelize.com',
       to: user.username,
       subject: 'Welcome to Parcelize!',
       text: `Have a look around. We just want to make a few simple tools to help make your life easier. Validate your account here: http://${CLIENT_DOMAIN}?token=${token}`,
@@ -30,7 +36,7 @@ module.exports.handler = async event => {
       body: JSON.stringify(user),
     });
   } catch (e) {
-    console.log('CLASSIFY REQ ERROR', e);
+    console.log('CREATE USER ERROR', e);
     return Promise.resolve({
       statusCode: 500,
       headers: {

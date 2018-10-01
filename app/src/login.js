@@ -26,7 +26,11 @@ module.exports.handler = async event => {
 
       const resUser = await api.findUserByUsername(session.user.username);
       const bayes = await api.getBayes(session.user.username);
-      const bucketInfo = await api.getBucketInfo(bayes.bayesModel);
+      let bucketInfo;
+
+      if (bayes) {
+        bucketInfo = await api.getBucketInfo(bayes.bayesModel);
+      }
 
       return Promise.resolve({
         statusCode: 200,

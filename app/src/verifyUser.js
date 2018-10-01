@@ -7,11 +7,9 @@ module.exports.handler = async event => {
       event.headers.Authorization,
       process.env.JWT_SECRET,
     );
-    console.log('jwt session', session.user.username);
     const user = await api.findUserByUsername(session.user.username);
 
     const bayes = await api.getBayes(session.user.username);
-    console.log('BBB', bayes);
     const bucketInfo = bayes ? await api.getBucketInfo(bayes.bayesModel) : {};
 
     console.log('USER', user, 'bucketInfo');
