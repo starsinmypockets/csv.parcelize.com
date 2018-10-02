@@ -14,10 +14,11 @@ class DataFields extends Component {
       placeholder,
     } = this.props;
 
-    return [...Array(ct).keys()].map(i => {
-      const name = `${fieldName}[${i}]`;
+    const datafields = [];
 
-      return (
+    for (let i = 0; i < ct; i++) {
+      const name = `${fieldName}_${i}`;
+      datafields.push(
         <Col sm={3} key={i}>
           <div className="data-field-container">
             <input
@@ -38,9 +39,10 @@ class DataFields extends Component {
                 <div className="input-feedback">{errors[name]}</div>
               )}
           </div>
-        </Col>
+        </Col>,
       );
-    });
+    }
+    return datafields;
   }
 
   render() {
@@ -55,19 +57,15 @@ class DataFields extends Component {
                 className="increment-bucket"
                 onClick={this.props.incrementDataFields}
                 bsSize="xsmall"
-                bsStyle="primary"
-              >
-              +
-              </Button>
-              {' '}
+                bsStyle="primary">
+                +
+              </Button>{' '}
               <Button
                 className="increment-buckets"
                 onClick={this.props.decrementDataFields}
                 bsStyle="primary"
-                bsSize="xsmall"
-              >
-               - 
-
+                bsSize="xsmall">
+                -
               </Button>
             </h5>
           </Col>

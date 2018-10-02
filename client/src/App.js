@@ -221,6 +221,9 @@ class App extends Component {
       console.log('SUBMIT TRAINING FORM', this, values);
       const reqBody = values;
       reqBody.name = values.modelName;
+      reqBody.dataFields = Object.keys(values).filter(f => f.includes('dataField')).map(key => {
+        return values[key]
+      });
 
       this.setState({loaded: false});
       const res = await fetch(baseUrl + '/train', {

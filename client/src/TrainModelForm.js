@@ -2,12 +2,15 @@ import React from 'react';
 import {Row, Col} from 'react-bootstrap';
 import {withFormik} from 'formik';
 import * as Yup from 'yup';
-/* import DataFields from './DataFields'; */
+import DataFields from './DataFields';
 
 const form = props => {
-  const {isValid, isSubmitting} = props
+  const {isValid, isSubmitting, dataFieldCount, doSubmit} = props;
   return (
-    <form>
+    <form onSubmit={ (e) => {
+      e.preventDefault()
+      doSubmit(props.values)
+    }}>
       <Row id="bucket-forms">{getBucketForms(props)}</Row>
       <Row className="header-fields">
         <Col>
@@ -18,6 +21,12 @@ const form = props => {
             and "description". Text from selected fields will be combined.
             Specified field names must be the same for all files.
           </span>
+          <DataFields
+            fieldName="dataFields"
+            placeholder="Enter data field"
+            ct={dataFieldCount}
+            {...props}
+          />
         </Col>
       </Row>
       <Row id="submit-training-data">
@@ -31,7 +40,14 @@ const form = props => {
 };
 
 const getBucketForms = props => {
-  const {values, touched, errors, handleChange, handleBlur, bucketCount} = props;
+  const {
+    values,
+    touched,
+    errors,
+    handleChange,
+    handleBlur,
+    bucketCount,
+  } = props;
   const bucketForms = [];
   for (let i = 0; i < bucketCount; i++) {
     const name = 'bucketName' + i;
@@ -78,32 +94,32 @@ const getBucketForms = props => {
   return bucketForms;
 };
 
-const enhancer= withFormik({
+const enhancer = withFormik({
   mapPropsToValues: () => {
     // umm
   },
-  validationSchema: (props, context) => {
-    console.log('valid', props, context);
-    let bucketShape = {}
-      for (let i = 0; i < props.bucketCount; i++) {
-        bucketShape['bucketName' + i] = Yup.string().required(
-          'Each bucket must have unique name!',
-        );
-        bucketShape['bucketUrl' + i] = Yup.string()
-          .url('Invalid url')
-          .required('URL required');
-      }
-    /* const dataFieldsShape = [...Array(props.dataFieldCount).keys()].reduce( */
-    /*   (acc, i) => { */
-    /*     acc[`dataFields[${i}]`] = Yup.string().required( */
-    /*       'Add a valid csv row header title or remove this field (-)', */
-    /*     ); */
-    /*     return acc; */
-    /*   }, */
-    /*   {}, */
-    /* ); */
-    /* return Yup.object().shape(Object.assign(bucketShape, dataFieldsShape)); */
-    return Yup.object().shape(bucketShape);
+  validate:(values, props) => {
+    console.log('vdd', values, props) 
+  },
+  validationSchema: (props) => {
+    let bucketShape = {};
+    let dataFieldShape = {
+    };
+    for (let i = 0; i < props.bucketCount; i++) {
+      bucketShape['bucketName' + i] = Yup.string().required(
+        'Each bucket must have unique name!',
+      );
+      bucketShape['bucketUrl' + i] = Yup.string()
+        .url('Invalid url')
+        .required('URL required');
+    }
+    for (let i = 0; i < props.dataFieldCount; i++) {
+      dataFieldShape[`dataFields_${i}`] = Yup.string().required(
+        'Add a valid csv row header title or remove this field (-)',
+      );
+    }
+    console.log('valid',dataFieldShape, bucketShape);
+    return Yup.object().shape(Object.assign({}, bucketShape, dataFieldShape));
   },
 });
 
