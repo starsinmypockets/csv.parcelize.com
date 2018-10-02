@@ -11,7 +11,6 @@ class BxTagCloud extends Component {
   }
 
   renderTag(tag, size) {
-    console.log('ss', size);
     const key = tag.key || tag.value;
     const style = {
       margin: '0px 3%',
@@ -32,7 +31,6 @@ class BxTagCloud extends Component {
   }
 
   render() {
-    console.log('sssssssssssssss', this);
     return (
       <div className="bucket-tag-cloud-container">
         <h2>{this.props.bucket}</h2>

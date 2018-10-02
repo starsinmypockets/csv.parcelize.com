@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 
 class Tag extends Component {
   render() {
-    console.log(this);
     return (
       <span
         className="tag-cloud-tag"
