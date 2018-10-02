@@ -5,7 +5,7 @@ import logo from './logo.svg';
 import './App.css';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
-import TrainModelForm from './TrainModelForm';
+import TrainModelPage from './TrainModelPage';
 import UploadForm from './UploadForm';
 import PasswordForm from './PasswordForm';
 import {getURLToken} from './utils';
@@ -381,22 +381,13 @@ class App extends Component {
           );
         } else {
           return (
-            <TrainModelForm
+            <TrainModelPage
               appUses={this.state.appUses}
               trainingModel={this.state.trainingModel}
               submitModelTrainForm={this.submitModelTrainFormAction.bind(this)}
             />
           );
         }
-
-      case 'train-model':
-        return (
-          <TrainModelForm
-            appUses={this.state.appUses}
-            trainingModel={this.state.trainingModel}
-            submitModelTrainForm={this.submitModelTrainFormAction.bind(this)}
-          />
-        );
       case 'model-submit':
         return (
           <div id="model-submit">

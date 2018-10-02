@@ -13,6 +13,7 @@ const MyInnerForm = props => {
     errors,
     dirty,
     isSubmitting,
+    isValid,
     handleChange,
     handleBlur,
     handleSubmit,
@@ -75,7 +76,7 @@ const MyInnerForm = props => {
         <p><a href="/privacy">Privacy Policy</a>.</p>
       </div>
       <div class="login-form-buttons" style={{marginTop: '2em', width: '100%'}}>
-        <button type="submit" disabled={isSubmitting}>
+        <button type="submit" disabled={isSubmitting || !isValid}>
           Sign Up
         </button>
       </div>
