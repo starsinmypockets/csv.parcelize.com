@@ -6,7 +6,7 @@ import './App.css';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 import TrainModelPage from './TrainModelPage';
-import UploadForm from './UploadForm';
+import ClassifyPage from './ClassifyPage';
 import PasswordForm from './PasswordForm';
 import {getURLToken} from './utils';
 
@@ -221,6 +221,8 @@ class App extends Component {
       console.log('SUBMIT TRAINING FORM', this, values);
       const reqBody = values;
       reqBody.name = values.modelName;
+      
+      // flatten dataFields to array
       reqBody.dataFields = Object.keys(values).filter(f => f.includes('dataField')).map(key => {
         return values[key]
       });
@@ -241,7 +243,7 @@ class App extends Component {
       if (body) {
         this.setState({
           loaded: true,
-          route: 'has-model',
+          route: 'user-home',
           buckets: body,
         });
       } else {
@@ -376,7 +378,7 @@ class App extends Component {
       case 'user-home':
         if (this.hasBuckets()) {
           return (
-            <UploadForm
+            <ClassifyPage
               buckets={this.state.buckets}
               submitUploadForm={this.submitUploadFormAction.bind(this)}
               retrainModel={this.retrainModelAction.bind(this)}
@@ -397,13 +399,6 @@ class App extends Component {
             <h2>Just a moment while we create a machine learning model</h2>
             <h3>This may take a few moments...</h3>
           </div>
-        );
-      case 'has-model':
-        return (
-          <UploadForm
-            buckets={this.state.buckets}
-            submitUploadForm={this.submitUploadFormAction.bind(this)}
-          />
         );
       case 'classify-submit':
         return (

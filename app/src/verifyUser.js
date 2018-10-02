@@ -10,9 +10,9 @@ module.exports.handler = async event => {
     const user = await api.findUserByUsername(session.user.username);
 
     const bayes = await api.getBayes(session.user.username);
-    const bucketInfo = bayes ? await api.getBucketInfo(bayes.bayesModel) : {};
-
-    console.log('USER', user, 'bucketInfo');
+    const model = JSON.parse(bayes.bayesModel)
+    console.log('BAYES!!!!', Object.keys(model))
+    const bucketInfo = bayes ? await api.getBucketInfo(model) : {};
 
     if (user) {
       return Promise.resolve({

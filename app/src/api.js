@@ -87,7 +87,7 @@ const api = (module.exports = {
 
   // return latest
   getBayes: async username => {
-    return Bayes.findOne({username}, {}, {sort: {created_at: -1}});
+    return Bayes.findOne({username}, {}, {sort: {created: -1}});
   },
 
   sendAuthEmail: async opts => {
@@ -165,7 +165,6 @@ const api = (module.exports = {
   getBucketInfo: async bayes => {
     try {
       const b8r = new Bucketizer();
-
       b8r.init({
         classifierModel: bayes,
       });
