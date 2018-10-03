@@ -147,6 +147,7 @@ class App extends Component {
         this.setState({
           route: 'user-home',
           loggedIn: true,
+          buckets: data.bucketInfo
         });
       }
     } catch (e) {
