@@ -7,10 +7,11 @@ import DataFields from './DataFields';
 const form = props => {
   const {isValid, isSubmitting, dataFieldCount, doSubmit} = props;
   return (
-    <form onSubmit={ (e) => {
-      e.preventDefault()
-      doSubmit(props.values)
-    }}>
+    <form
+      onSubmit={e => {
+        e.preventDefault();
+        doSubmit(props.values);
+      }}>
       <Row id="bucket-forms">{getBucketForms(props)}</Row>
       <Row className="header-fields">
         <Col>
@@ -98,13 +99,12 @@ const enhancer = withFormik({
   mapPropsToValues: () => {
     // umm
   },
-  validate:(values, props) => {
-    console.log('vdd', values, props) 
+  validate: (values, props) => {
+    console.log('vdd', values, props);
   },
-  validationSchema: (props) => {
+  validationSchema: props => {
     let bucketShape = {};
-    let dataFieldShape = {
-    };
+    let dataFieldShape = {};
     for (let i = 0; i < props.bucketCount; i++) {
       bucketShape['bucketName' + i] = Yup.string().required(
         'Each bucket must have unique name!',
@@ -118,7 +118,7 @@ const enhancer = withFormik({
         'Add a valid csv row header title or remove this field (-)',
       );
     }
-    console.log('valid',dataFieldShape, bucketShape);
+    console.log('valid', dataFieldShape, bucketShape);
     return Yup.object().shape(Object.assign({}, bucketShape, dataFieldShape));
   },
 });

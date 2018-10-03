@@ -1,22 +1,6 @@
 import React, {Component} from 'react';
 import './forms.css';
-import {
-  Button,
-  Nav,
-  Navbar,
-  NavItem,
-  NavDropdown,
-  MenuItem,
-  Grid,
-  Row,
-  Col,
-  ListGroup,
-  ListGroupItem,
-  FormGroup,
-  ControlLabel,
-  FormControl,
-  HelpBlock,
-} from 'react-bootstrap';
+import {Button, Row, Col} from 'react-bootstrap';
 import * as Yup from 'yup';
 import {withFormik} from 'formik';
 
@@ -30,11 +14,16 @@ const MyInnerForm = props => {
     isSubmitting,
     handleChange,
     handleBlur,
-    handleSubmit,
     handleReset,
+    loginAction,
+    isValid,
   } = props;
   return (
-    <form onSubmit={handleSubmit}>
+    <form
+      onSubmit={e => {
+        e.preventDefault();
+        loginAction(values);
+      }}>
       <div class="login-form-inputs" style={{minHeight: '60px'}}>
         <input
           id="email"
@@ -59,7 +48,9 @@ const MyInnerForm = props => {
           onChange={handleChange}
           onBlur={handleBlur}
           className={
-            errors.password && touched.email ? 'text-input error' : 'text-input'
+            errors.password && touched.password
+              ? 'text-input error'
+              : 'text-input'
           }
         />
         {errors.password &&
@@ -67,7 +58,7 @@ const MyInnerForm = props => {
             <div className="input-feedback">{errors.password}</div>
           )}
       </div>
-      <button type="submit" disabled={isSubmitting}>
+      <button type="submit" disabled={isSubmitting || !isValid}>
         Login
       </button>
     </form>
@@ -91,28 +82,27 @@ function equalTo(ref: any, msg: any) {
 Yup.addMethod(Yup.string, 'equalTo', equalTo);
 
 const EnhancedForm = withFormik({
-  mapPropsToValues: () => ({email: ''}),
   validationSchema: Yup.object().shape({
     email: Yup.string()
       .email('Invalid email address')
       .required('Email is required'),
     password: Yup.string().required('Password field is required'),
   }),
-  handleSubmit: (values, {props, setSubmitting}) => {
-    console.log('VV', values);
-    props.loginAction(values);
-  },
   displayName: 'BasicForm', // helps with React DevTools
 })(MyInnerForm);
 
 class LoginForm extends Component {
+  handleSubmit(values) {
+    this.props.loginAction(values);
+  }
+
   render() {
     return (
       <div id="bucketize-home">
         <Row>
           <h2>Try it for free</h2>
           <Col md={6} mdPush={3}>
-            <EnhancedForm loginAction={this.props.loginAction} />
+            <EnhancedForm loginAction={this.handleSubmit.bind(this)} />
           </Col>
         </Row>
       </div>
