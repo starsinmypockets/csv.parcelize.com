@@ -261,11 +261,13 @@ class App extends Component {
     }
   }
 
-  async submitUploadFormAction(values) {
+  async submitClassifyFormAction(values) {
     try {
       console.log('SUBMIT UPLOAD FORM', this, values);
+      
 
       this.setState({loaded: false});
+      
       const res = await fetch(baseUrl + '/classify', {
         method: 'POST',
         body: JSON.stringify(values),
@@ -380,7 +382,7 @@ class App extends Component {
           return (
             <ClassifyPage
               buckets={this.state.buckets}
-              submitUploadForm={this.submitUploadFormAction.bind(this)}
+              submitClassifyForm={this.submitClassifyFormAction.bind(this)}
               retrainModel={this.retrainModelAction.bind(this)}
             />
           );

@@ -49,7 +49,7 @@ class ClassifyPage extends Component {
   //noop
   handleSubmit(values) {
     console.log('submit____________', values);
-    this.props.submitUploadForm(values);
+    this.props.submitClassifyForm(values);
   }
 
   render() {

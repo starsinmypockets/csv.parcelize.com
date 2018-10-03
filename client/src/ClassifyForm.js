@@ -14,7 +14,7 @@ const form = props => {
         <Col md={mdCols} key={bucket}>
           <h4 className="text-left">{bucket}</h4>
           <DataFields
-            fieldName={bucket}
+            fieldName={'bucket_' + bucket}
             ct={arrayFieldCounts[bucket]}
             placeholder={`${bucket} term`}
             incrementDataFields={e =>
@@ -30,7 +30,7 @@ const form = props => {
     });
 
     return (
-      <form onSubmit={e => {e.preventDefault(); doSubmit()}}>
+      <form onSubmit={e => {e.preventDefault(); doSubmit(values)}}>
         <Row>
           <div className="bucket-form-field">
             <input
@@ -92,7 +92,7 @@ const enhancer = withFormik({
         'Add a valid name or remove this field (-)',
       );
       } else {
-      acc[`${key}_${i}`] = Yup.string()
+      acc[`bucket_${key}_${i}`] = Yup.string()
       }
     }
     return acc

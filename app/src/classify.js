@@ -2,6 +2,41 @@ const api = require('./api');
 const jwt = require('jsonwebtoken');
 const secret = process.env.JWT_SECRET;
 
+/**
+ * @return Obj
+ * {buckets: [
+ *  {bucketName: 'foo', terms: ['bar', 'baz', ...]}, 
+ * ... 
+ * ]}
+ */
+const getSearchTermArray = eventBody => {
+  // searchTerms are in format `bucket_$NAME_$I`
+  const searchTermData = Object.keys(eventBody).filter(
+    field => field.indexOf('bucket') === 0,
+  );
+
+  // group terms by bucket
+  const searchTerms = searchTermData.reduce(
+    (acc, key) => {
+      const bucketName = key.split('_')[1];
+      acc[bucketName] = acc[bucketName] || [];
+      acc[bucketName].push(eventBody[key]);
+      return acc;
+    },
+    {}, //acc
+  );
+
+  // now format as array
+  const terms = Object.keys(searchTerms).map(key => {
+    const row = {};
+    row.bucketName = key;
+    row.terms = searchTerms[key];
+    return row;
+  });
+
+  return {buckets: terms};
+};
+
 module.exports.handler = async event => {
   try {
     const eventBody = JSON.parse(event.body);
@@ -10,20 +45,15 @@ module.exports.handler = async event => {
     const user = session.user;
 
     const url = api.formatGoogleDocsLink(eventBody.url);
-    const dataFields = eventBody.datafields || ['description']; // @@TODO take this out
+    const searchTerms = getSearchTermArray(eventBody);
+    const dataFields = Object.keys(eventBody)
+      .map(key => {
+        if (key.includes('dataField')) {
+          return eventBody[key];
+        }
+      })
+      .filter(k => !!k);
 
-    const searchTermData = Object.keys(eventBody).filter(field =>
-      (field.indexOf('bucket') === 0),
-    );
-
-    const searchTerms = {
-      buckets: searchTermData.map(key => ({
-        bucketName: key.replace('bucket', ''),
-        terms: eventBody[key],
-      })),
-    };
-
-    console.log('SEARCH TERMS', searchTerms);
     const csvData = await api.getCSVData([{bucketName: 'rows', url: url}]);
 
     const bx = await api.classifyData({
