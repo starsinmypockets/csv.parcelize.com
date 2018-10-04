@@ -100,7 +100,7 @@ class LoginForm extends Component {
     return (
       <div id="bucketize-home">
         <Row>
-          <h2>Try it for free</h2>
+          <h2>Log In</h2>
           <Col md={6} mdPush={3}>
             <EnhancedForm loginAction={this.handleSubmit.bind(this)} />
           </Col>

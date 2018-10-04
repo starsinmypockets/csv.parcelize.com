@@ -72,8 +72,7 @@ const MyInnerForm = props => {
         </div>
       </div>
       <div class="topmatter">
-        <p>By clicking Sign Up, you are agreeing with our <a href="/tos">Terms and Conditions of Use</a>.</p>
-        <p><a href="/privacy">Privacy Policy</a>.</p>
+        <p>Thanks for your interest! This product is in alpha and the <a href="http://unxutils.sourceforge.net/StdDisclaimer.html">Standard Disclaimer</a> applies. We store all submitted data on secure servers. If you would like more info please reach out to <a href="mailto:admin@parcelize.com">admin@parcelize.com</a></p>
       </div>
       <div class="login-form-buttons" style={{marginTop: '2em', width: '100%'}}>
         <button type="submit" disabled={isSubmitting || !isValid}>

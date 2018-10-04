@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Row, Button} from 'react-bootstrap';
+import {Row, Col, Button} from 'react-bootstrap';
 import BxTagCloud from './BxTagCloud';
 import ClassifyForm from './ClassifyForm';
 
@@ -26,16 +26,16 @@ class ClassifyPage extends Component {
     let i;
     let update = false;
     // we need at least one dataField but can have 0 for bucket search terms
-    const curr = this.state.arrayFieldCounts[field] || 0
-    console.log('currr', curr)
+    const curr = this.state.arrayFieldCounts[field] || 0;
+    console.log('currr', curr);
 
     if (op === 'up' && curr < max) {
-      update = true
+      update = true;
       i = curr + 1;
     }
 
-    if (op === 'down' && (curr > min)) {
-      update = true
+    if (op === 'down' && curr > min) {
+      update = true;
       i = curr - 1;
     }
 
@@ -53,6 +53,7 @@ class ClassifyPage extends Component {
   }
 
   render() {
+    const mdCols = Math.floor(12 / Object.keys(this.props.buckets).length);
     const tagClouds = Object.keys(this.props.buckets).map((buck, i) => {
       const data = [];
       this.props.buckets[buck].forEach(item => {
@@ -61,29 +62,22 @@ class ClassifyPage extends Component {
         }
       });
       return (
-        <div className="tag-clouds" key={i}>
-          <h2>{buck}</h2>
-          <BxTagCloud key={i} min={20} max={60} data={data} />
-        </div>
+        <Col md={mdCols} key={i}>
+          <h3 className="text-secondary">{buck}</h3>
+          <div className="tag-clouds">
+            <BxTagCloud key={i} min={20} max={60} data={data} />
+          </div>
+        </Col>
       );
     });
 
     return (
       <div id="classify=page-main">
         <Row>
+          <h2>Classify your data</h2>
           <p className="lead">
             We've built a model based on your training data. Enter a link to a
             file you want to classify.
-          </p>
-          <p>
-            If you would like to retrain your model{' '}
-            <Button bsSize="sm" onClick={this.props.retrainModel}>
-              Click Here
-            </Button>
-          </p>
-          <p>
-            **note** that in alpha you can only store one model at a time. You
-            will not be able to access previous models.
           </p>
         </Row>
         <ClassifyForm
@@ -92,6 +86,17 @@ class ClassifyPage extends Component {
           incrementFormFields={this.incrementFormFields.bind(this)}
           doSubmit={this.handleSubmit.bind(this)}
         />
+        <Row className="text-left" style={{marginTop: '2em'}}>
+          <p>
+          If you would like to retrain your model{' '}
+          <Button bsSize="sm" onClick={this.props.retrainModel}>
+            Click Here
+          </Button>
+        </p>
+        <p>
+          **note** that in alpha you can only store one model at a time. You
+          will not be able to access previous models.
+        </p></Row>
         <Row>{tagClouds}</Row>
       </div>
     );

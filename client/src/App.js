@@ -7,6 +7,8 @@ import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 import TrainModelPage from './TrainModelPage';
 import ClassifyPage from './ClassifyPage';
+import FAQ from './FAQ';
+import Splash from './Splash';
 import PasswordForm from './PasswordForm';
 import {getURLToken} from './utils';
 
@@ -40,6 +42,10 @@ class App extends Component {
     if (loggedIn) {
       this.getLoggedUserAction();
     }
+  }
+
+  componentDidMount() {
+    document.title = 'Parcelize CSV Classifier';
   }
 
   hasBuckets() {
@@ -147,7 +153,7 @@ class App extends Component {
         this.setState({
           route: 'user-home',
           loggedIn: true,
-          buckets: data.bucketInfo
+          buckets: data.bucketInfo,
         });
       }
     } catch (e) {
@@ -222,11 +228,13 @@ class App extends Component {
       console.log('SUBMIT TRAINING FORM', this, values);
       const reqBody = values;
       reqBody.name = values.modelName;
-      
+
       // flatten dataFields to array
-      reqBody.dataFields = Object.keys(values).filter(f => f.includes('dataField')).map(key => {
-        return values[key]
-      });
+      reqBody.dataFields = Object.keys(values)
+        .filter(f => f.includes('dataField'))
+        .map(key => {
+          return values[key];
+        });
 
       this.setState({loaded: false});
       const res = await fetch(baseUrl + '/train', {
@@ -265,10 +273,9 @@ class App extends Component {
   async submitClassifyFormAction(values) {
     try {
       console.log('SUBMIT UPLOAD FORM', this, values);
-      
 
       this.setState({loaded: false});
-      
+
       const res = await fetch(baseUrl + '/classify', {
         method: 'POST',
         body: JSON.stringify(values),
@@ -369,6 +376,8 @@ class App extends Component {
         return <SignupForm signupAction={this.signupAction.bind(this)} />;
       case 'login':
         return <LoginForm loginAction={this.loginAction.bind(this)} />;
+      case 'FAQ':
+        return <FAQ />;
       case 'submit-sent':
         return (
           <div className="submit-sent">
@@ -424,142 +433,39 @@ class App extends Component {
     }
   }
 
-  renderIntro() {
-    const liStyle = {textAlign: 'left', listStyle: 'none'};
-
-    return (
-      <div className="welcome" style={liStyle}>
-        <Row className="intro-header">
-          <Col xs={12}>
-            <h2 style={{textAlign: 'center'}}>Sort CSV rows into categories</h2>
-            <p className="lead">
-              A simple tool for sorting csv rows based on text analysis.
-            </p>
-            <button
-              onClick={e => {
-                e.preventDefault();
-                this.setState({route: 'signup'});
-              }}>
-              Signup is free
-            </button>
-            <br />
-            <p className="lead">Some uses include:</p>
-            <ul>
-              <li>
-                <h4>
-                  sentiment analysis (<strong>Pro</strong>, <strong>Con</strong>
-                  )
-                </h4>
-              </li>
-              <li>
-                <h4>
-                  score responses (<strong>Strong</strong>,{' '}
-                  <strong>Weak</strong>)
-                </h4>
-              </li>
-              <li>
-                <h4>
-                  prioritize events (<strong>Attend</strong>,{' '}
-                  <strong>RSVP-only</strong>, <strong>Ignore</strong>)
-                </h4>
-              </li>
-              <li>
-                <h4>
-                  sort email (<strong>Urgent</strong>,{' '}
-                  <strong>High-priority</strong>, <strong>Low-priority</strong>,{' '}
-                  <strong>Spam</strong>)
-                </h4>
-              </li>
-              <li>
-                <h4>
-                  automate decision making (<strong>Call back</strong>,{' '}
-                  <strong>Send email</strong>, <strong>Ignore</strong>)
-                </h4>
-              </li>
-            </ul>
-          </Col>
-        </Row>
-        <Row>
-          <br />
-        </Row>
-        <Row>
-          <Col xs={12}>
-            <p className="lead">
-              While there's no replacement for the wit and wisdom of humanity,
-              we don't need to spend hours sifting through data. Let the machine
-              do the work - drink a cup of coffee and press go. Review the
-              results and tweak. Adjust. Leave the tedium out of your day.
-            </p>
-            <ul>
-              <li>
-                <h4 className="instruction-step">
-                  Step 1: Sort your csv's into separate files by category (ex:
-                  attend, ignore)
-                </h4>
-              </li>
-              <li>
-                <h4 className="instruction-step">
-                  Step 2: Upload the files to google docs
-                </h4>
-              </li>
-              <li>
-                <h4 className="instruction-step">
-                  Step 3: Provide links to the files and tell us which columns
-                  to consider
-                </h4>
-              </li>
-              <li>
-                <h4 className="instruction-step">
-                  Step 4: Run the trainer and take a look at the results
-                </h4>
-              </li>
-              <li>
-                <h4 className="instruction-step">
-                  Step 5: Upload a csv of uncategorized data (make sure it has
-                  the appropriate column headers)
-                </h4>
-              </li>
-              <li>
-                <h4 className="instruction-step">
-                  Step 6: Download your sorted files
-                </h4>
-              </li>
-            </ul>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <ul style={{listStyle: 'none'}}>
-              <li>
-                <h3 className="lead">
-                  <a href="#">View a demo</a>
-                </h3>
-              </li>
-              <li>
-                <h3 className="lead">
-                  <a href="#">Read an article on Medium</a>
-                </h3>
-              </li>
-            </ul>
-          </Col>
-        </Row>
-      </div>
-    );
-  }
-
   render() {
     console.log('render', this.state);
-    const header = this.state.route === 'home' ? this.renderIntro() : '';
+    const header =
+      this.state.route === 'home' ? (
+        <Splash
+          getSignup={() => {
+            this.setState({route: 'signup'});
+          }}
+        />
+      ) : (
+        ''
+      );
     const body = this.route();
     const accountMenu = this.state.loggedIn ? (
       <Row>
         <Col xs={0} md={9} />
         <Col xs={12} md={3}>
           <div className="account">
-            <a href="parcelize.com">Info</a>
+            <a href="http://parcelize.com">Info</a>
             <span> | </span>
             <a href="#" onClick={this.doLogout.bind(this)}>
               Logout
+            </a>
+            <span> | </span>
+            <a href="csv.parcelize.com">Home</a>
+            <span> | </span>
+            <a
+              href="#"
+              onClick={e => {
+                e.preventDefault();
+                this.setState({route: 'FAQ'});
+              }}>
+              FAQ
             </a>
           </div>
         </Col>
@@ -585,6 +491,15 @@ class App extends Component {
                 this.setState({route: 'signup'});
               }}>
               Signup
+            </a>
+            <span> | </span>
+            <a
+              href="#"
+              onClick={e => {
+                e.preventDefault();
+                this.setState({route: 'FAQ'});
+              }}>
+              FAQ
             </a>
           </div>
         </Col>

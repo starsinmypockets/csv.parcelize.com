@@ -65,7 +65,7 @@ class TrainModelPage extends Component {
 
     return (
       <Grid id="classifier" className="text-left">
-        <h2 className="text-center">Step 1 -- Train your model</h2>
+        <h2 className="text-center">Train your model</h2>
         <Row>
           <span className="h4">Buckets ({this.state.bucketCount})</span>
           <span> -- </span>
