@@ -1,21 +1,21 @@
-module.exports.handler = async (event) => {
+module.exports.handler = async event => {
   try {
-    const eventBody = JSON.parse(event.body)
-    const AWS = require('aws-sdk')  
-    
+    const eventBody = JSON.parse(event.body);
+    const AWS = require('aws-sdk');
+
     const s3 = new AWS.S3({
       apiVersion: '2006-03-01',
       params: {Bucket: 'parcelize.parcels'},
-      region: 'us-east-1'
-    })
-    
-    const dl = await s3.getObject({
-      IfMatch: eventBody.ETag,
-      Key: eventBody.Key
-    })
-    .promise()
+      region: 'us-east-1',
+    });
 
-    
+    const dl = await s3
+      .getObject({
+        IfMatch: eventBody.ETag,
+        Key: eventBody.Key,
+      })
+      .promise();
+
     return Promise.resolve({
       statusCode: 200,
       body: dl.Body.toString(),
@@ -23,18 +23,17 @@ module.exports.handler = async (event) => {
         'content-type': 'text/plain',
         'content-length': dl.ContentLength,
         'Access-control-allow-origin': '*',
-        'Access-control-allow-credentials': true
-      }
-    })
+        'Access-control-allow-credentials': true,
+      },
+    });
   } catch (e) {
-    console.log('DL-BUCKET', e)
+    console.log('DL-BUCKET', e);
     return Promise.resolve({
       statusCode: 500,
       headers: {
         'Access-control-allow-origin': '*',
-        'Access-control-allow-credentials': true
-      }
-    })
+        'Access-control-allow-credentials': true,
+      },
+    });
   }
-}
-
+};
