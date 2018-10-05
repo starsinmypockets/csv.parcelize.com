@@ -16,7 +16,6 @@ const form = props => {
     incrementFormFields,
     doSubmit,
   } = props;
-  console.log('arrayFieldCt', arrayFieldCounts);
   const bx = Object.keys(buckets).filter(k => !k.includes('dataField'));
   const mdCols = Math.floor(12 / bx.length);
   const bucketTerms = bx.map(bucket => {

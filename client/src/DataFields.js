@@ -46,7 +46,6 @@ class DataFields extends Component {
   }
 
   render() {
-    console.log('DFDF', this.getDataFields());
     return (
       <div>
         <Row id="data-fields" style={{textAlign: ''}}>

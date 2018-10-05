@@ -2,11 +2,54 @@ import React, {Component} from 'react';
 import {Row, Col, Button} from 'react-bootstrap';
 import BxTagCloud from './BxTagCloud';
 import ClassifyForm from './ClassifyForm';
+import ReactDOM from 'react-dom'
+import { Motion, spring, presets } from "react-motion";
+
+class Inner extends Component {
+  componentDidUpdate() {
+    document.scrollingElement.scrollTop = this.props.scrollTop
+  }
+  
+  render() {
+    return (
+    <div id="classify=page-main">
+      <Row>
+      </Row>
+      <Row>
+        <h2>Classify your data</h2>
+        <p className="lead">
+          We've built a model based on your training data. Enter a link to a
+          file you want to classify.
+        </p>
+      </Row>
+      <ClassifyForm
+        buckets={this.props.buckets}
+        arrayFieldCounts={this.props.arrayFieldCounts}
+        incrementFormFields={this.props.incrementFormFields}
+        doSubmit={this.props.handleSubmit}
+      />
+      <Row className="text-left" style={{marginTop: '2em'}}>
+        <p>
+        If you would like to retrain your model{' '}
+        <Button bsSize="sm" onClick={this.props.retrainModel}>
+          Click Here
+        </Button>
+      </p>
+      <p>
+        **note** that in alpha you can only store one model at a time. You
+        will not be able to access previous models.
+      </p></Row>
+      <Row id="tag-cloud" ref={this.props.tagsRef}>{this.props.tagClouds}</Row>
+    </div>
+    )
+  }
+}
 
 class ClassifyPage extends Component {
   constructor(props, context) {
     super(props, context);
     const token = window.location.pathname.slice(1);
+    this.tagsRef = React.createRef();
     const countFields = Object.keys(this.props.buckets).reduce(
       (acc, bucket) => {
         acc[bucket] = 1;
@@ -18,10 +61,23 @@ class ClassifyPage extends Component {
     this.state = Object.assign({}, countFields, {
       token: token,
       arrayFieldCounts: countFields,
+      scrollTop: 0
     });
   }
+  
+  scrollToTags = () => {
+    const scrollTop = ReactDOM.findDOMNode(this.tagsRef.current).getBoundingClientRect().y
+    console.log('Scroll', scrollTop)
+    this.setState({scrollTop: scrollTop})
+  }
+  
+  //noop
+  handleSubmit = (values) => {
+    console.log('submit____________', values);
+    this.props.submitClassifyForm(values);
+  }
 
-  incrementFormFields(e, field, max = 5, min = 1, op = 'up') {
+  incrementFormFields = (e, field, max = 5, min = 1, op = 'up') => {
     e.preventDefault();
     let i;
     let update = false;
@@ -46,11 +102,6 @@ class ClassifyPage extends Component {
     }
   }
 
-  //noop
-  handleSubmit(values) {
-    console.log('submit____________', values);
-    this.props.submitClassifyForm(values);
-  }
 
   render() {
     const mdCols = Math.floor(12 / Object.keys(this.props.buckets).length);
@@ -72,33 +123,24 @@ class ClassifyPage extends Component {
     });
 
     return (
-      <div id="classify=page-main">
-        <Row>
-          <h2>Classify your data</h2>
-          <p className="lead">
-            We've built a model based on your training data. Enter a link to a
-            file you want to classify.
-          </p>
-        </Row>
-        <ClassifyForm
-          buckets={this.props.buckets}
-          arrayFieldCounts={this.state.arrayFieldCounts}
-          incrementFormFields={this.incrementFormFields.bind(this)}
-          doSubmit={this.handleSubmit.bind(this)}
+    <div>
+        <Button className="text-left" bsSize="sm" bsStyle="link" onClick={this.scrollToTags}>View your model</Button>
+    <Motion style={{scrollTop: spring(this.state.scrollTop, presets.noWobble) }}>
+    {motionVals => {
+      return (
+        <Inner 
+          incrementFormFields={this.incrementFormFields}
+          handleSubmit={this.handleSubmit}
+          arrayFieldCounts={this.state.arrayFieldCounts} 
+          tagClouds={tagClouds}
+          tagsRef={this.tagsRef}
+          scrollTop={motionVals.scrollTop}
+          {...this.props}
         />
-        <Row className="text-left" style={{marginTop: '2em'}}>
-          <p>
-          If you would like to retrain your model{' '}
-          <Button bsSize="sm" onClick={this.props.retrainModel}>
-            Click Here
-          </Button>
-        </p>
-        <p>
-          **note** that in alpha you can only store one model at a time. You
-          will not be able to access previous models.
-        </p></Row>
-        <Row>{tagClouds}</Row>
-      </div>
+      )
+    }}
+    </Motion>
+    </div>
     );
   }
 }
