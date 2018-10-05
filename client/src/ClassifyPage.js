@@ -30,7 +30,7 @@ class Inner extends Component {
       />
       <Row className="text-left" style={{marginTop: '2em'}}>
         <p>
-        If you would like to retrain your model{' '}
+        If you would like to retrain your model{'    '}
         <Button bsSize="sm" onClick={this.props.retrainModel}>
           Click Here
         </Button>
@@ -124,7 +124,7 @@ class ClassifyPage extends Component {
 
     return (
     <div>
-        <Button className="text-left" bsSize="sm" bsStyle="link" onClick={this.scrollToTags}>View your model</Button>
+        <Button style={{maxWidth: '100px', float:'left', marginBottom: '-3em'}} bsSize="sm" bsStyle="link" onClick={this.scrollToTags}>View your model</Button>
     <Motion style={{scrollTop: spring(this.state.scrollTop, presets.noWobble) }}>
     {motionVals => {
       return (
