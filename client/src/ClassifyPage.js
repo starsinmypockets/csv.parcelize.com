@@ -4,6 +4,11 @@ import BxTagCloud from './BxTagCloud';
 import ClassifyForm from './ClassifyForm';
 import ReactDOM from 'react-dom'
 import { Motion, spring, presets } from "react-motion";
+import UpIcon from './upicon.svg'
+
+const UpArrow = props => {
+  return <span><img src={UpIcon} {...props} /></span> 
+}
 
 class Inner extends Component {
   componentDidUpdate() {
@@ -39,7 +44,18 @@ class Inner extends Component {
         **note** that in alpha you can only store one model at a time. You
         will not be able to access previous models.
       </p></Row>
-      <Row id="tag-cloud" ref={this.props.tagsRef}>{this.props.tagClouds}</Row>
+      <Row ref={this.props.tagsRef} style={{minHeight: '20px'}}>
+      <UpArrow 
+        width="20px"
+        onClick={this.props.scrollToTop}
+        hidden={this.props.scrollTop < 10}
+        style={{
+          cursor: 'pointer'
+        }}
+      /></Row>
+      <Row id="tag-cloud" >
+        {this.props.tagClouds}
+      </Row>
     </div>
     )
   }
@@ -69,6 +85,10 @@ class ClassifyPage extends Component {
     const scrollTop = ReactDOM.findDOMNode(this.tagsRef.current).getBoundingClientRect().y
     console.log('Scroll', scrollTop)
     this.setState({scrollTop: scrollTop})
+  }
+
+  scrollToTop = () => {
+    this.setState({scrollTop: 0})
   }
   
   //noop
@@ -135,6 +155,7 @@ class ClassifyPage extends Component {
           tagClouds={tagClouds}
           tagsRef={this.tagsRef}
           scrollTop={motionVals.scrollTop}
+          scrollToTop={this.scrollToTop}
           {...this.props}
         />
       )
