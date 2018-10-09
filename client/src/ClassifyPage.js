@@ -54,6 +54,7 @@ class Inner extends Component {
         }}
       /></Row>
       <Row id="tag-cloud" >
+        <h2>Your model:</h2>
         {this.props.tagClouds}
       </Row>
     </div>
