@@ -42,11 +42,9 @@ const dataModel = new mongoose.Schema({
   data: {type: Object, required: true}, // JSON
 });
 
-if (process.env.IS_OFFLINE) {
-  delete mongoose.connection.models.User;
-  delete mongoose.connection.models.Bayes;
-  delete mongoose.connection.models.Data;
-}
+delete mongoose.connection.models.User;
+delete mongoose.connection.models.Bayes;
+delete mongoose.connection.models.Data;
 
 module.exports = {
   User: mongoose.model('User', userSchema),

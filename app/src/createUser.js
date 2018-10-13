@@ -6,6 +6,7 @@ const CLIENT_DOMAIN = 'csv.parcelize.com';
 module.exports.handler = async event => {
   try {
     const eventBody = JSON.parse(event.body);
+    console.log("CREATE USER BODY", eventBody);
     const sessUser = {username: eventBody.email};
     const token = jwt.sign({user: sessUser}, process.env.JWT_SECRET, {
       expiresIn: JWT_EXPIRATION_TIME,
@@ -15,6 +16,7 @@ module.exports.handler = async event => {
     const userOpts = {
       username: eventBody.username,
       name: eventBody.name,
+      bearerToken: token
     };
 
     const user = await api.createUser(userOpts);

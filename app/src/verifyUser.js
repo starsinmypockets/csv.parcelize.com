@@ -3,6 +3,7 @@ const api = require('./api');
 
 module.exports.handler = async event => {
   try {
+    let bucketInfo = {};
     const session = jwt.verify(
       event.headers.Authorization,
       process.env.JWT_SECRET,
@@ -10,9 +11,11 @@ module.exports.handler = async event => {
     const user = await api.findUserByUsername(session.user.username);
 
     const bayes = await api.getBayes(session.user.username);
-    const model = JSON.parse(bayes.bayesModel)
-    console.log('BAYES!!!!', Object.keys(model))
-    const bucketInfo = bayes ? await api.getBucketInfo(model) : {};
+    
+    if (bayes) { 
+      const model = JSON.parse(bayes.bayesModel)
+      bucketInfo = bayes ? await api.getBucketInfo(model) : {};
+    }
 
     if (user) {
       return Promise.resolve({
