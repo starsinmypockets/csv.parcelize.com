@@ -12,14 +12,22 @@ import Splash from './Splash';
 import PasswordForm from './PasswordForm';
 import {getURLToken} from './utils';
 
-const hostname = window && window.location && window.location.hostname;
-let baseUrl;
+const getBaseUrl = () => {
+  const hostname = window && window.location && window.location.hostname;
+  switch (hostname) {
+    case 'csv.parcelize.com':
+      return 'https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/prod';
+    case 'dev.parcelize.com':
+      return 'https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev';
+    case 'localhost':
+      return 'http://localhost:4000';
+    default:
+      return 'https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/prod';
+  }
+};
 
-if (hostname === 'csv.parcelize.com') {
-  baseUrl = 'https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev';
-} else if (hostname === 'localhost') {
-  baseUrl = 'http://localhost:4000';
-}
+let baseUrl = getBaseUrl();
+const __version__ = 'ALPHA -- 0.2.0';
 
 class App extends Component {
   constructor(props) {
@@ -515,7 +523,9 @@ class App extends Component {
         />
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Parcelize -- CSV (alpha)</h1>
+          <h1 className="App-title">
+            Parcelize -- CSV ({__version__})
+          </h1>
         </header>
         <Loader loaded={this.state.loaded}>
           <Grid className="main">

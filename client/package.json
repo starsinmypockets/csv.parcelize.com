@@ -28,13 +28,10 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "dev": "concurrently --kill-others-on-fail \"npm start\" \"node app/app.js\"",
-    "_test": "react-scripts test --env=jsdom",
-    "test": "ENV=test mocha app/test",
     "lint": "./node_modules/eslint/bin/eslint.js src/ --fix",
     "eject": "react-scripts eject",
-    "app": "ENV=dev node app/app.js",
-    "deploy": "npm run build && aws s3 sync build/ s3://parcelize.com"
+    "deployprod": "npm run build && aws s3 sync build/ s3://parcelize.com",
+    "deploydev": "npm run build && aws s3 sync build/ s3://dev.parcelize.com"
   },
   "proxy": {
     "/api": {
