@@ -65,7 +65,7 @@ class FAQ extends Component {
               </li>
               <li>
                 <h3 className="lead">
-                  <a href="#">Read an article on Medium</a>
+                  <a href="https://medium.com/@starsinmypockets/machine-learning-and-activism-549e0c853cd6">Read an article on Medium</a>
                 </h3>
               </li>
             </ul>
