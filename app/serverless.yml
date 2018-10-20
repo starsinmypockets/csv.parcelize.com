@@ -7,7 +7,7 @@ service: parcelize
 provider:
   name: aws
   runtime: nodejs8.10
-  stage: dev
+  stage: prod
   iamRoleStatements:
     - Effect: Allow
       Resource: "*"
@@ -53,13 +53,23 @@ functions:
         - http:
             path: /authenticate-user
             method: post
-            authorizer: authorize
             cors: true
     environment:
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
       SLS_DEBUG: "*"
       JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
-
+  
+  getGoogleDocs:
+    handler: src/getGoogleDocs.handler
+    events:
+        - http:
+            path: /gdocs
+            method: get
+            cors: true
+    environment:
+      PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
+      SLS_DEBUG: "*"
+      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
   
   login:
     handler: src/login.handler

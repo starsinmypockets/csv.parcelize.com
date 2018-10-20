@@ -22,6 +22,7 @@ module.exports.handler = async event => {
         statusCode: 200,
         headers: {
           'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true,
         },
         body: JSON.stringify({
           user: user,
@@ -33,6 +34,7 @@ module.exports.handler = async event => {
       return Promise.resolve({
         headers: {
           'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true,
         },
         statusCode: 401,
       });
@@ -43,6 +45,7 @@ module.exports.handler = async event => {
       statusCode: 500,
       headers: {
         'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
       },
       body: JSON.stringify(e),
     });

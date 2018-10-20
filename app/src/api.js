@@ -90,7 +90,7 @@ const api = (module.exports = {
     return Bayes.findOne({username}, {}, {sort: {created: -1}});
   },
 
-  sendAuthEmail: async opts => {
+  sendEmail: async opts => {
     console.log('SEND AUTH EMAIL', JSON.stringify(opts));
     try {
       const aws = require('aws-sdk');
@@ -114,8 +114,7 @@ const api = (module.exports = {
         },
       };
 
-      const data = await ses.sendEmail(mailOptions).promise();
-      return data;
+      return ses.sendEmail(mailOptions).promise();
     } catch (e) {
       console.log('SEND AUTH EMAIL', e);
       return Promise.reject(e);

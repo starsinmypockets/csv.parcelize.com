@@ -3,6 +3,25 @@ import './forms.css';
 import {Button, Row, Col} from 'react-bootstrap';
 import * as Yup from 'yup';
 import {withFormik} from 'formik';
+import GoogleLogin from 'react-google-login';
+
+const DO_GOOGLE = false;
+const GOOGLE_CLIENT_ID =
+  '811670575134-kv9g4j2iiqbq5sc7v3da9n8afkaopqvh.apps.googleusercontent.com';
+
+
+const GoogleLoginButton = props => {
+  return (
+    <Row>
+      <GoogleLogin
+        clientId={GOOGLE_CLIENT_ID}
+        buttonText="Login with Google"
+        onSuccess={props.responseGoogle}
+        onFailure={props.responseGoogle}
+      />
+    </Row>
+  );
+};
 
 // Our inner form component. Will be wrapped with Formik({..})
 const MyInnerForm = props => {
@@ -96,15 +115,26 @@ class LoginForm extends Component {
     this.props.loginAction(values);
   }
 
+  responseGoogle = res => {
+    console.log('google res', res);
+  };
+
   render() {
+    const googleLogin = DO_GOOGLE ? (
+      <GoogleLoginButton responseGoogle={this.responseGoogle} />
+    ) : (
+      ''
+    );
+
     return (
       <div id="bucketize-home">
         <Row>
-          <h2>Log In</h2>
+          <h2>Log In</h2>,
           <Col md={6} mdPush={3}>
             <EnhancedForm loginAction={this.handleSubmit.bind(this)} />
           </Col>
         </Row>
+        {googleLogin}
       </div>
     );
   }

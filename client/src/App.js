@@ -16,18 +16,18 @@ const getBaseUrl = () => {
   const hostname = window && window.location && window.location.hostname;
   switch (hostname) {
     case 'csv.parcelize.com':
-      return 'https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/prod';
+      return 'https://ts3ewworv2.execute-api.us-east-1.amazonaws.com/prod';
     case 'dev.parcelize.com':
       return 'https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/dev';
     case 'localhost':
       return 'http://localhost:4000';
     default:
-      return 'https://rfm5bo1ob6.execute-api.us-east-1.amazonaws.com/prod';
+      return 'https://ts3ewworv2.execute-api.us-east-1.amazonaws.com/prod';
   }
 };
 
 let baseUrl = getBaseUrl();
-const __version__ = 'ALPHA -- 0.2.0';
+const __version__ = 'ALPHA -- 0.2.11';
 
 class App extends Component {
   constructor(props) {
@@ -45,9 +45,7 @@ class App extends Component {
     if (token) {
       console.log('tok'), token;
       this.verifyTokenAction();
-    }
-
-    if (loggedIn) {
+    } else if (loggedIn) {
       this.getLoggedUserAction();
     }
   }
@@ -115,6 +113,7 @@ class App extends Component {
       const res = await fetch(baseUrl + '/authenticate-user', {
         method: 'POST',
         body: JSON.stringify({password: opts.password}),
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
           Authorization: sessionStorage.getItem('jwtToken'),

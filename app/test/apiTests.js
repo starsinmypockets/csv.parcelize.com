@@ -18,7 +18,7 @@ describe('API tests', () => {
 
   describe('send email', () => {
     it('should send an email', async () => {
-      //      const emailRes = await api.sendAuthEmail({email: "starsinmypockets@gmail.com"})
+      //      const emailRes = await api.sendEmail({email: "starsinmypockets@gmail.com"})
       // UNCOMMENT TO CHECK SENDMAIL ^^
       assert(true);
     });
@@ -142,7 +142,7 @@ describe('API tests', () => {
   /*   const config = require('../src/config.js')[process.env.ENV] */
   /*   const bearerToken = 'foobar' */
 
-  /*   api.sendAuthEmail({ */
+  /*   api.sendEmail({ */
   /*     senderEmail: config.senderEmail, */
   /*     from: "parcelize@protonmail.com", */
   /*     to: "pjwalker76@gmail.com", */

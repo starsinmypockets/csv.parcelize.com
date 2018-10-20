@@ -30,7 +30,7 @@
     "build": "react-scripts build",
     "lint": "./node_modules/eslint/bin/eslint.js src/ --fix",
     "eject": "react-scripts eject",
-    "deployprod": "npm run build && aws s3 sync build/ s3://parcelize.com",
+    "deployprod": "npm run build && aws s3 sync build/ s3://csv.parcelize.com",
     "deploydev": "npm run build && aws s3 sync build/ s3://dev.parcelize.com"
   },
   "proxy": {
