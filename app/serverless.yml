@@ -92,6 +92,10 @@ functions:
           method: post
           authorizer: authorize
           cors: true
+          response:
+            headers:
+                Access-Control-Allow-Origin: "*"
+                Access-Control-Allow-Authorization: true
     environment:
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
       JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"

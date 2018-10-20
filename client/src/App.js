@@ -27,19 +27,35 @@ const getBaseUrl = () => {
 };
 
 let baseUrl = getBaseUrl();
-const __version__ = 'ALPHA -- 0.2.11';
+const __version__ = 'ALPHA -- 0.2.15';
 
 class App extends Component {
   constructor(props) {
     super(props);
+    let initialRoute;
     const token = getURLToken();
     const loggedIn = sessionStorage.getItem('jwtToken');
-    const initialRoute = loggedIn ? 'user-home' : 'home';
+    
+    if (token) {
+      initialRoute = 'has-token';
+    } else {
+      initialRoute = loggedIn ? 'user-home' : 'home';
+    }
+    
     this.state = {
       token: token,
       route: initialRoute,
       loaded: true,
       loggedIn: loggedIn,
+    };
+
+    this.doLogout = landingPage => {
+      const route = landingPage || 'home';
+      sessionStorage.removeItem('jwtToken');
+      this.setState({
+        loggedIn: false,
+        route: route,
+      });
     };
 
     if (token) {
@@ -61,14 +77,6 @@ class App extends Component {
       console.log('HAS BUCKETS', e);
       return false;
     }
-  }
-
-  doLogout() {
-    sessionStorage.removeItem('jwtToken');
-    this.setState({
-      loggedIn: false,
-      route: 'home',
-    });
   }
 
   async callApi() {
@@ -123,10 +131,7 @@ class App extends Component {
       if (!res.ok) {
         this.setState({route: 'bad-submit'});
       } else {
-        this.setState({
-          route: 'user-home',
-          loggedIn: 'true',
-        });
+        this.doLogout('login');
       }
     } catch (e) {
       console.log(e);
@@ -247,6 +252,7 @@ class App extends Component {
       const res = await fetch(baseUrl + '/train', {
         method: 'POST',
         body: JSON.stringify(reqBody),
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
           Authorization: sessionStorage.getItem('jwtToken'),
@@ -390,6 +396,7 @@ class App extends Component {
           <div className="submit-sent">
             <h2>Thank you!</h2>
             <p className="lead">Please check your email for your login link.</p>
+            <p>(Make sure to check your Spam folder too)</p>
           </div>
         );
       case 'has-token':
@@ -460,7 +467,7 @@ class App extends Component {
           <div className="account">
             <a href="http://parcelize.com">Info</a>
             <span> | </span>
-            <a href="#" onClick={this.doLogout.bind(this)}>
+            <a href="#" onClick={this.doLogout}>
               Logout
             </a>
             <span> | </span>
@@ -522,9 +529,7 @@ class App extends Component {
         />
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">
-            Parcelize -- CSV ({__version__})
-          </h1>
+          <h1 className="App-title">Parcelize -- CSV ({__version__})</h1>
         </header>
         <Loader loaded={this.state.loaded}>
           <Grid className="main">
