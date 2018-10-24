@@ -20,7 +20,7 @@ functions:
   authorize:
     handler: src/authorize.handler
     environment:
-      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+      JWT_SECRET: ${env:JWT_SECRET}
   
   createUser:
     handler: src/createUser.handler
@@ -32,7 +32,7 @@ functions:
     environment:
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
       SLS_DEBUG: "*"
-      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+      JWT_SECRET: ${env:JWT_SECRET}
 
   verifyUser:
     handler: src/verifyUser.handler
@@ -45,7 +45,7 @@ functions:
     environment:
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
       SLS_DEBUG: "*"
-      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+      JWT_SECRET: ${env:JWT_SECRET}
   
   authenticateUser:
     handler: src/authenticateUser.handler
@@ -57,7 +57,7 @@ functions:
     environment:
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
       SLS_DEBUG: "*"
-      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+      JWT_SECRET: ${env:JWT_SECRET}
   
   getGoogleDocs:
     handler: src/getGoogleDocs.handler
@@ -69,7 +69,7 @@ functions:
     environment:
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
       SLS_DEBUG: "*"
-      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+      JWT_SECRET: ${env:JWT_SECRET}
   
   login:
     handler: src/login.handler
@@ -81,7 +81,7 @@ functions:
     environment:
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
       SLS_DEBUG: "*"
-      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+      JWT_SECRET: ${env:JWT_SECRET}
 
   train:
     handler: src/train.handler
@@ -98,7 +98,7 @@ functions:
                 Access-Control-Allow-Authorization: true
     environment:
       PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
-      JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+      JWT_SECRET: ${env:JWT_SECRET}
       SLS_DEBUG: "*"
 
   classify:
@@ -113,7 +113,7 @@ functions:
      environment:
        PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
        SLS_DEBUG: "*"
-       JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+       JWT_SECRET: ${env:JWT_SECRET}
   
   downloadBucket:
      handler: src/downloadBucket.handler
@@ -126,7 +126,7 @@ functions:
      environment:
        PARCELIZE_MLAB_CONNECT: ${env:PARCELIZE_MLAB_CONNECT}
        SLS_DEBUG: "*"
-       JWT_SECRET: "f98dhiu3hgfsudy342tuisedogwuy3i87Aa"
+       JWT_SECRET: ${env:JWT_SECRET}
 
 
 package:
