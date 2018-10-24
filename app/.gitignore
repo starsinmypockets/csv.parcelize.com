@@ -5,4 +5,8 @@ jspm_packages
 # Serverless directories
 .serverless
 
+# Config
+serverless.yml
+
+# VIM swap files :P
 .*.*.sw*
