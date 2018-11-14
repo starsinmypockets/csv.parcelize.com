@@ -19,7 +19,6 @@ describe('Test Bucketizer with Bayes', () => {
   });
 
   it('Stopwords initialized as []', () => {
-    console.log(b8r.stopWords);
     assert(Array.isArray(b8r.stopWords));
     assert(b8r.stopWords.length === 0);
   });
@@ -40,7 +39,6 @@ describe('Test Bucketizer with Bayes', () => {
   });
 
   it('Has buckets none', () => {
-    console.log(b8r.buckets.none);
     assert(Array.isArray(b8r.buckets.none));
   });
 
@@ -159,7 +157,6 @@ describe('Run pipeline with multiterm search', () => {
     b8r.buckets.neg.forEach(row => {
       assert(row.cat === 'neg');
     });
-    console.log(b8r.buckets.none);
 
     assert(b8r.buckets.none.length === 2);
   });

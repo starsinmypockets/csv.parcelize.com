@@ -81,7 +81,6 @@ describe('API tests', () => {
     const fieldNames = ['bucketName', 'bucketUrl'];
 
     const res = api.formatReqFields(body, fieldNames);
-    console.log('FFFF', res);
   });
 
   describe('Test bucketizer and bayes model generation', () => {
@@ -103,7 +102,6 @@ describe('API tests', () => {
             username: testUser.username,
           });
 
-          console.log('Bayes', model);
           assert('has model', model);
           assert('model has categories', model.categories);
 
@@ -122,7 +120,6 @@ describe('API tests', () => {
               const great = info.pos.filter(row => {
                 return row[0] === 'great';
               });
-              console.log('BUCKET INFO', info, great);
               assert('has expected categories', Array.isArray(info.pos));
               assert('has expected categories', Array.isArray(info.neg));
               assert('keyword great exists', great[0] === 'great');

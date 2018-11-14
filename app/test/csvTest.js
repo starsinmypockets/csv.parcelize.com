@@ -16,7 +16,6 @@ const testData = [
 describe('HEY', () => {
   it('Should return data in the expected format', async () => {
     const csvData = await getCSVData(testData);
-    /* console.log("csvData", csvData) */
 
     it('should be data', () => {
       assert(csvData);
